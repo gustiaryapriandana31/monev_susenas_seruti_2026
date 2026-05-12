@@ -1,0 +1,18 @@
+﻿
+  GET|HEAD  / dashboard ΓÇ║ DashboaΓÇª
+  GET|HEAD  data-dsrt/export dataΓÇª
+  POST      data-dsrt/toggle-ceklis data_dsrt.toggle_ceklis ΓÇ║ DataDsrtController@toggleCekΓÇª
+  POST      data-dsrt/update dataΓÇª
+  GET|HEAD  data-dssls/export datΓÇª
+  POST      data-dssls/toggle-ceklis data_dssls.toggle_ceklis ΓÇ║ DataDsslsController@toggleCeΓÇª
+  POST      data-dssls/update datΓÇª
+  POST      import-data-dsrt dataΓÇª
+  POST      import-data-dssls datΓÇª
+  POST      import-petugas-entry ΓÇª
+  POST      import-petugas-lapangan petugas_lapangan.import ΓÇ║ PetugasLapanganController@impΓÇª
+  GET|HEAD  storage/{path} storagΓÇª
+  PUT       storage/{path} storagΓÇª
+  GET|HEAD  up ................... 
+
+               Showing [14] routes
+
