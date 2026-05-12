@@ -8,9 +8,11 @@ use App\Http\Controllers\DataDsrtController;
 use App\Http\Controllers\DashboardController;
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-
-
-
+Route::get('/dashboard/datatable/lapangan', [DashboardController::class, 'datatableLapangan'])->name('dashboard.datatable_lapangan');
+Route::get('/dashboard/datatable/entry', [DashboardController::class, 'datatableEntry'])->name('dashboard.datatable_entry');
+Route::get('/dashboard/datatable/dssls', [DashboardController::class, 'datatableDssls'])->name('dashboard.datatable_dssls');
+Route::get('/dashboard/datatable/dsrt', [DashboardController::class, 'datatableDsrt'])->name('dashboard.datatable_dsrt');
+Route::get('/dashboard/petugas-options', [DashboardController::class, 'petugasOptions'])->name('dashboard.petugas_options');
 Route::post('/import-petugas-lapangan', [PetugasLapanganController::class, 'import'])->name('petugas_lapangan.import');
 
 Route::post('/import-petugas-entry', [PetugasEntryController::class, 'import'])->name('petugas_entry.import');
@@ -34,6 +36,10 @@ Route::post('/data-dsrt/update', [DataDsrtController::class, 'update'])->name('d
 Route::post('/data-dsrt/update-inline', [DataDsrtController::class, 'updateInline'])->name('data_dsrt.update_inline');
 
 // Delete Routes
+Route::post('/petugas-lapangan/delete-bulk', [PetugasLapanganController::class, 'deleteBulk'])->name('petugas_lapangan.delete_bulk');
+Route::post('/petugas-lapangan/delete-all', [PetugasLapanganController::class, 'deleteAll'])->name('petugas_lapangan.delete_all');
+Route::post('/petugas-entry/delete-bulk', [PetugasEntryController::class, 'deleteBulk'])->name('petugas_entry.delete_bulk');
+Route::post('/petugas-entry/delete-all', [PetugasEntryController::class, 'deleteAll'])->name('petugas_entry.delete_all');
 Route::post('/data-dssls/delete-bulk', [DataDsslsController::class, 'deleteBulk'])->name('data_dssls.delete_bulk');
 Route::post('/data-dssls/delete-all', [DataDsslsController::class, 'deleteAll'])->name('data_dssls.delete_all');
 Route::post('/data-dsrt/delete-bulk', [DataDsrtController::class, 'deleteBulk'])->name('data_dsrt.delete_bulk');
