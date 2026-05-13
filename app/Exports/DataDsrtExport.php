@@ -5,7 +5,6 @@ namespace App\Exports;
 use App\Models\DataDsrt;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -15,89 +14,89 @@ class DataDsrtExport implements FromQuery, WithHeadings, WithMapping, WithStyles
 {
     public function styles(Worksheet $sheet)
     {
+        // Merge title row
+        $sheet->mergeCells('A1:F1');
+        
+        // Alignment for headers
+        $sheet->getStyle('A1:F3')->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('A1:F3')->getAlignment()->setVertical('center');
+
         return [
-            // Style the first row as bold text.
+            // Row 1: Title
             1    => [
-                'font' => ['bold' => true],
+                'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF'], 'size' => 12],
                 'fill' => [
                     'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['argb' => 'FFFFD580'], // Light Orange
+                    'startColor' => ['argb' => 'FF843C0C'], // Dark Brownish Orange
+                ],
+            ],
+            // Row 2 & 3: Headers
+            2    => [
+                'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['argb' => 'FFED7D31'], // Orange
+                ],
+            ],
+            3    => [
+                'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['argb' => 'FFED7D31'], // Orange
+                ],
+            ],
+            // Borders for headers and data
+            'A1:F100' => [
+                'borders' => [
+                    'allBorders' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    ],
                 ],
             ],
         ];
     }
 
     /**
-    * @return \Illuminate\Database\Eloquent\Builder
-    */
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     public function query()
     {
-        return DataDsrt::query()->with(['ppl', 'pml', 'susenas', 'seruti']);
+        // Return query for export sorted by status (Sudah first)
+        return DataDsrt::query()->orderBy('ceklis_ipds', 'desc');
     }
 
     public function map($data): array
     {
         return [
-            $data->id,
-            $data->kec,
-            $data->desa,
-            $data->kdbs,
-            $data->klas,
-            $data->idbs,
-            $data->nmkec,
-            $data->nmdesa,
+            '16',
+            '10',
             $data->nks_sak22,
-            $data->F_SERUTI,
-            $data->nmslsm,
-            $data->r503,
-            $data->r503b,
-            $data->dsrt_ssn,
             $data->nus_ssn,
-            $data->ppl?->nama_petugas ?? $data->petugas_ppl,
-            $data->pml?->nama_petugas ?? $data->petugas_pml,
-            $data->ceklis_lap,
-            $data->waktu_ceklis_lap,
-            $data->ceklis_sosial,
-            $data->waktu_ceklis_sosial,
-            $data->ceklis_ipds,
-            $data->waktu_ceklis_ipds,
-            $data->susenas?->nama_petugas ?? $data->petugas_susenas,
-            $data->seruti?->nama_petugas ?? $data->petugas_seruti,
-            $data->created_at,
-            $data->updated_at,
+            $data->ceklis_ipds == '1' ? 'Sudah' : 'Belum',
+            optional($data->waktu_ceklis_ipds)->format('d-m-Y') ?? '-',
         ];
     }
 
     public function headings(): array
     {
         return [
-            'ID',
-            'Kecamatan',
-            'Desa',
-            'KDBS',
-            'Klas',
-            'IDBS',
-            'Nama Kecamatan',
-            'Nama Desa',
-            'NKS SAK22',
-            'F SERUTI',
-            'Nama SLS',
-            'R503',
-            'R503B',
-            'DSRT SSN',
-            'NUS SSN',
-            'Petugas PPL',
-            'Petugas PML',
-            'Ceklis Lapangan',
-            'Waktu Ceklis Lapangan',
-            'Ceklis Sosial',
-            'Waktu Ceklis Sosial',
-            'Ceklis IPDS',
-            'Waktu Ceklis IPDS',
-            'Petugas Susenas',
-            'Petugas Seruti',
-            'Created At',
-            'Updated At',
+            ['Data Progress Penerimaan Kuesioner Susenas oleh IPDS'],
+            [
+                'Kode Prop',
+                'Kode Kab',
+                'Kode NKS',
+                'No Urut Ruta',
+                'Ceklis IPDS?',
+                'Tanggal Penerimaan'
+            ],
+            [
+                '',
+                '',
+                '',
+                '',
+                '',
+                'TT-BB-TTTT'
+            ]
         ];
     }
 }

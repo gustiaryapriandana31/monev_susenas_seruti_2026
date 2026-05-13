@@ -35,6 +35,12 @@ class DataDsrt extends Model
         'petugas_seruti'
     ];
 
+    protected $casts = [
+        'waktu_ceklis_lap' => 'datetime',
+        'waktu_ceklis_sosial' => 'datetime',
+        'waktu_ceklis_ipds' => 'datetime',
+    ];
+
     public function ppl()
     {
         return $this->belongsTo(PetugasLapangan::class, 'petugas_ppl', 'kode_petugas');

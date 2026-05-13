@@ -32,7 +32,8 @@ class DataDsslsExport implements FromQuery, WithHeadings, WithMapping, WithStyle
     */
     public function query()
     {
-        return DataDssls::query()->with(['ppl', 'pml', 'entry']);
+        return DataDssls::query()->with(['ppl', 'pml', 'entry'])
+            ->orderBy('ceklis_ipds', 'desc');
     }
 
     public function map($data): array
@@ -58,12 +59,12 @@ class DataDsslsExport implements FromQuery, WithHeadings, WithMapping, WithStyle
             $data->sampel_sakernas_total,
             $data->ppl?->nama_petugas ?? $data->petugas_ppl,
             $data->pml?->nama_petugas ?? $data->petugas_pml,
-            $data->ceklis_lap,
-            $data->waktu_ceklis_lap,
-            $data->ceklis_sosial,
-            $data->waktu_ceklis_sosial,
-            $data->ceklis_ipds,
-            $data->waktu_ceklis_ipds,
+            $data->ceklis_lap == '1' ? 'Sudah' : 'Belum',
+            optional($data->waktu_ceklis_lap)->format('Y-m-d') ?? '-',
+            $data->ceklis_sosial == '1' ? 'Sudah' : 'Belum',
+            optional($data->waktu_ceklis_sosial)->format('Y-m-d') ?? '-',
+            $data->ceklis_ipds == '1' ? 'Sudah' : 'Belum',
+            optional($data->waktu_ceklis_ipds)->format('Y-m-d') ?? '-',
             $data->entry?->nama_petugas ?? $data->petugas_entry,
             $data->created_at,
             $data->updated_at,

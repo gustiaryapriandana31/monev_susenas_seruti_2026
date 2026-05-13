@@ -57,7 +57,7 @@ class DataDsrtController extends Controller
 
     public function export()
     {
-        return Excel::download(new DataDsrtExport, 'data_dsrt_export_' . date('Ymd_His') . '.xlsx');
+        return Excel::download(new DataDsrtExport, 'Export Data DSRT untuk IPDS.xlsx');
     }
 
     public function update(Request $request)
