@@ -8,15 +8,24 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class DataDsrtExport implements FromQuery, WithHeadings, WithMapping, WithStyles, ShouldAutoSize
+class DataDsrtExport implements FromQuery, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithTitle
 {
+    public function title(): string
+    {
+        return 'IPDS';
+    }
     public function styles(Worksheet $sheet)
     {
         // Merge title row
         $sheet->mergeCells('A1:F1');
         
+        // Dynamic borders for all rows
+        $highestRow = $sheet->getHighestRow();
+        $sheet->getStyle('A1:F' . $highestRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
         // Alignment for headers
         $sheet->getStyle('A1:F3')->getAlignment()->setHorizontal('center');
         $sheet->getStyle('A1:F3')->getAlignment()->setVertical('center');
@@ -45,14 +54,6 @@ class DataDsrtExport implements FromQuery, WithHeadings, WithMapping, WithStyles
                     'startColor' => ['argb' => 'FFED7D31'], // Orange
                 ],
             ],
-            // Borders for headers and data
-            'A1:F100' => [
-                'borders' => [
-                    'allBorders' => [
-                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                    ],
-                ],
-            ],
         ];
     }
 
@@ -73,7 +74,7 @@ class DataDsrtExport implements FromQuery, WithHeadings, WithMapping, WithStyles
             $data->nks_sak22,
             $data->nus_ssn,
             $data->ceklis_ipds == '1' ? 'Sudah' : 'Belum',
-            optional($data->waktu_ceklis_ipds)->format('d-m-Y') ?? '-',
+            optional($data->waktu_ceklis_ipds)->format('d-m-Y') ?? '',
         ];
     }
 

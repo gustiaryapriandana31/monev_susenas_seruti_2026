@@ -33,14 +33,15 @@ class DataDsslsController extends Controller
             'state' => 'required|in:0,1'
         ]);
 
-        $item       = DataDssls::find($request->id);
+        $item       = DataDssls::findOrFail($request->id);
         $field      = $request->field;
         $waktuField = 'waktu_' . $field;
 
-        $item->$field = $request->state == 1;
+        $state = (int) $request->state;
+        $item->$field = ($state === 1);
         $timestamp    = null;
 
-        if ($request->state == 1) {
+        if ($state === 1) {
             $item->$waktuField = Carbon::now();
             $timestamp         = $item->$waktuField->format('d/m/y H:i');
         } else {

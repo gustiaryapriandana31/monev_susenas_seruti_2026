@@ -9,12 +9,22 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class DataDsslsExport implements FromQuery, WithHeadings, WithMapping, WithStyles, ShouldAutoSize
+class DataDsslsExport implements FromQuery, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithTitle
 {
+    public function title(): string
+    {
+        return 'IPDS';
+    }
+
     public function styles(Worksheet $sheet)
     {
+        // Dynamic borders for all rows
+        $highestRow = $sheet->getHighestRow();
+        $sheet->getStyle('A1:AC' . $highestRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
         return [
             // Style the first row as bold text.
             1    => [
