@@ -283,7 +283,7 @@
 
     function lapanganColumns() {
         var cols = [];
-        if (isSuperAdmin) cols.push({ data:null, orderable:false, searchable:false, className:'text-center', render:function(d,t,row){return renderCheckbox(row,'lapangan');} });
+        if (isSuperAdmin || isAdminSosial) cols.push({ data:null, orderable:false, searchable:false, className:'text-center', render:function(d,t,row){return renderCheckbox(row,'lapangan');} });
         cols.push(
             { data:'kode_petugas', render:function(d){return '<span class="font-bold text-bps-dark text-xs">'+escapeHtml(d)+'</span>';} },
             { data:'provinsi', render:renderPlainText },
@@ -298,7 +298,7 @@
 
     function entryColumns() {
         var cols = [];
-        if (isSuperAdmin) cols.push({ data:null, orderable:false, searchable:false, className:'text-center', render:function(d,t,row){return renderCheckbox(row,'entry');} });
+        if (isSuperAdmin || isAdminIpds) cols.push({ data:null, orderable:false, searchable:false, className:'text-center', render:function(d,t,row){return renderCheckbox(row,'entry');} });
         cols.push(
             { data:'kode_petugas', render:function(d){return '<span class="font-bold text-bps-dark text-xs">'+escapeHtml(d)+'</span>';} },
             { data:'provinsi', render:renderPlainText },
@@ -400,13 +400,6 @@
             { data:'r503', className:'font-medium text-xs', render:function(d){return escapeHtml(d);} }
         );
 
-        // ── adminipds: ceklis IPDS di posisi PERTAMA di antara ceklis ──
-        if (isAdminIpds) {
-            cols.push({ data:'ceklis_ipds', className:'text-center', render:function(d,t,row){
-                return renderStatusCheckbox(row,'dsrt','ceklis_ipds');
-            }});
-        }
-
         // ── Ceklis Lapangan ──
         cols.push({ data:'ceklis_lap', className:'text-center', render:function(d,t,row){
             return isAdminIpds ? renderCeklisIcon(row,'ceklis_lap') : renderStatusCheckbox(row,'dsrt','ceklis_lap');
@@ -417,8 +410,8 @@
             return isAdminIpds ? renderCeklisIcon(row,'ceklis_sosial') : renderStatusCheckbox(row,'dsrt','ceklis_sosial');
         }});
 
-        // ── Ceklis IPDS posisi normal: hanya superadmin (adminsosial: hidden, adminipds: sudah di atas) ──
-        if (isSuperAdmin) {
+        // ── Ceklis IPDS posisi normal: superadmin & adminipds ──
+        if (isSuperAdmin || isAdminIpds) {
             cols.push({ data:'ceklis_ipds', className:'text-center', render:function(d,t,row){
                 return renderStatusCheckbox(row,'dsrt','ceklis_ipds');
             }});

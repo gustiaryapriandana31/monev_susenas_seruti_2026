@@ -13,11 +13,20 @@ class PetugasEntryController extends Controller
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            if (!auth()->user()->isSuperAdmin()) {
-                if ($request->ajax()) {
-                    return response()->json(['success' => false, 'message' => 'Akses ditolak. Hanya Super Admin yang dapat mengubah data petugas.'], 403);
+            $user = auth()->user();
+            $route = $request->route()->getActionMethod();
+
+            if ($route === 'import') {
+                if (!$user->isSuperAdmin() && !$user->isAdminIpds()) {
+                    abort(403, 'Akses ditolak. Hanya Super Admin dan Admin IPDS yang dapat mengimpor petugas entry.');
                 }
-                abort(403, 'Akses ditolak. Hanya Super Admin yang dapat mengubah data petugas.');
+            } else {
+                if (!$user->isSuperAdmin() && !$user->isAdminIpds()) {
+                    if ($request->ajax()) {
+                        return response()->json(['success' => false, 'message' => 'Akses ditolak. Hanya Super Admin dan Admin IPDS yang dapat mengubah data petugas.'], 403);
+                    }
+                    abort(403, 'Akses ditolak. Hanya Super Admin dan Admin IPDS yang dapat mengubah data petugas.');
+                }
             }
             return $next($request);
         });
