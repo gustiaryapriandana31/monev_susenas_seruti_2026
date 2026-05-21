@@ -2,37 +2,34 @@
 
 namespace App\Exports;
 
-use App\Models\DataDssls;
+use App\Models\DataDsrt;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class DataDsslsExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithColumnWidths, WithTitle
+class DataDsrtSosialKabExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithColumnWidths, WithTitle
 {
     public function title(): string
     {
-        return 'Pemutakhiran Lapangan';
+        return 'Sosial ke Kabupaten';
     }
-
     public function columnWidths(): array
     {
         return [
-            'A' => 10, // Kode Prop
-            'B' => 10, // Kode Kab
-            'C' => 15, // Kode NKS
-            'D' => 18, // Ceklis Pemutakhiran Lapangan?
-            'E' => 18, // Tanggal Ceklis Pemutakhiran Lapangan
-            'F' => 15, // Jumlah Keluarga Awal
-            'G' => 15, // Jumlah Keluarga Hasil Updating
-            'H' => 15, // Jumlah Rumah Tangga Hasil Updating
+            'A' => 12, // Kode Prop
+            'B' => 12, // Kode Kab
+            'C' => 18, // Kode NKS
+            'D' => 14, // No Urut Ruta
+            'E' => 16, // Ceklis Sosial?
+            'F' => 18, // Blok Catatan (KOR)
+            'G' => 18, // Blok Catatan (KP)
+            'H' => 16, // Tanggal Ceklis Sosial
         ];
     }
-
     public function styles(Worksheet $sheet)
     {
         // Merge title row — 8 kolom: A–H
@@ -51,48 +48,40 @@ class DataDsslsExport implements FromQuery, WithHeadings, WithMapping, WithStyle
         $sheet->getStyle('A1:H3')->getAlignment()->setHorizontal('center');
         $sheet->getStyle('A1:H3')->getAlignment()->setVertical('center');
 
-        // Warna biru untuk 3 kolom terakhir (F–H) di baris 2
-        foreach (['F2', 'G2', 'H2'] as $cell) {
-            $sheet->getStyle($cell)->getFill()
-                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FF1F5C99'); // Biru gelap
-        }
-
         return [
             // Row 1: Title
-            1 => [
+            1    => [
                 'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF'], 'size' => 12],
                 'fill' => [
                     'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['argb' => 'FFED7D31'], // Orange
+                    'startColor' => ['argb' => 'FF843C0C'], // Dark Brownish Orange
                 ],
             ],
-            // Row 2: Headers (A–E orange, F–H dioverride biru di atas)
-            2 => [
+            // Row 2 & 3: Headers
+            2    => [
                 'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
                 'fill' => [
                     'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
                     'startColor' => ['argb' => 'FFED7D31'], // Orange
                 ],
             ],
-            // Row 3: Subheaders (No background color / white fill, black bold text)
-            3 => [
-                'font' => ['bold' => true, 'color' => ['argb' => 'FF000000']],
+            3    => [
+                'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
                 'fill' => [
                     'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                    'startColor' => ['argb' => 'FFFFFFFF'], // White
+                    'startColor' => ['argb' => 'FFED7D31'], // Orange
                 ],
             ],
         ];
     }
 
     /**
-    * @return \Illuminate\Database\Eloquent\Builder
-    */
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
     public function query()
     {
-        return DataDssls::query()->with(['ppl', 'pml', 'entry'])
-            ->orderBy('ceklis_ipds', 'desc');
+        // Return query for export sorted by status (Sudah first)
+        return DataDsrt::query()->orderBy('ceklis_sosial', 'desc');
     }
 
     public function map($data): array
@@ -100,39 +89,39 @@ class DataDsslsExport implements FromQuery, WithHeadings, WithMapping, WithStyle
         return [
             '16',
             '10',
-            $data->nks ?? '',
-            $data->ceklis_lap == '1' ? 'Sudah' : 'Belum',
-            optional($data->waktu_ceklis_lap)->format('Y-m-d') ?? '-',
-            $data->jumlah_keluarga_awal ?? '',
-            $data->jumlah_keluarga_hasil_updating ?? '',
-            $data->jumlah_rumah_tangga_hasil_updating ?? '',
+            $data->nks_sak22 ?? '',
+            $data->nus_ssn ?? '',
+            $data->ceklis_sosial == '1' ? 'Sudah' : 'Belum',
+            $data->blok_catatan_kor == '1' ? 'Ya' : 'Tidak',
+            $data->blok_catatan_kp == '1' ? 'Ya' : 'Tidak',
+            optional($data->waktu_ceklis_sosial)->format('d-m-Y') ?? '',
         ];
     }
 
     public function headings(): array
     {
         return [
-            ['Data Progress Pemutakhiran Rumah Tangga'],
+            ['Data Progress Pengiriman Kuesioner Susenas ke Kabupaten'],
             [
                 'Kode Prop',
                 'Kode Kab',
                 'Kode NKS',
-                'Ceklis Pemutakhiran Lapangan?',
-                'Tanggal Ceklis Pemutakhiran Lapangan',
-                'Jumlah Keluarga Awal',
-                'Jumlah Keluarga Hasil Updating',
-                'Jumlah Rumah Tangga Hasil Updating',
+                'No Urut Ruta',
+                'Ceklis Sosial?',
+                'Blok Catatan (KOR) Terisi Ya = 1 Tidak = 0',
+                'Blok Catatan (KP) Terisi Ya = 1 Tidak = 0',
+                'Tanggal Ceklis Sosial'
             ],
             [
                 '',
                 '',
                 '',
                 '',
-                'TT-BB-TTTT',
-                '(Blok II Rinc.1)',
-                '(Blok II Rinc.2)',
-                '(Blok II Rinc.3)',
-            ],
+                '',
+                '',
+                '',
+                'TT-BB-TTTT'
+            ]
         ];
     }
 }

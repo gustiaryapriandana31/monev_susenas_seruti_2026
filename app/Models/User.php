@@ -20,9 +20,35 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
+        'role',
     ];
+
+    /**
+     * Helper to check if user is Super Admin
+     */
+    public function isSuperAdmin(): bool
+    {
+        return ($this->role === 'superadmin') || ($this->username === 'superadmin');
+    }
+
+    /**
+     * Helper to check if user is Admin IPDS
+     */
+    public function isAdminIpds(): bool
+    {
+        return ($this->role === 'adminipds') || ($this->username === 'adminipds');
+    }
+
+    /**
+     * Helper to check if user is Admin Sosial
+     */
+    public function isAdminSosial(): bool
+    {
+        return ($this->role === 'adminsosial') || ($this->username === 'adminsosial');
+    }
 
     /**
      * The attributes that should be hidden for serialization.

@@ -10,6 +10,19 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class PetugasEntryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if (!auth()->user()->isSuperAdmin()) {
+                if ($request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'Akses ditolak. Hanya Super Admin yang dapat mengubah data petugas.'], 403);
+                }
+                abort(403, 'Akses ditolak. Hanya Super Admin yang dapat mengubah data petugas.');
+            }
+            return $next($request);
+        });
+    }
+
     public function import(Request $request)
     {
         $request->validate([

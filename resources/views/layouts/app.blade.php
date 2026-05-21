@@ -282,6 +282,16 @@
                         <i class="fa-solid fa-file-invoice w-6"></i>
                         <span class="font-medium">Data DSRT</span>
                     </a>
+                    
+                    <hr class="border-white/10 my-2">
+                    
+                    <form action="{{ route('logout') }}" method="POST" id="logout-form" class="hidden">
+                        @csrf
+                    </form>
+                    <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300">
+                        <i class="fa-solid fa-right-from-bracket w-6"></i>
+                        <span class="font-medium">Logout</span>
+                    </a>
                 </nav>
 
                 <!-- Sidebar Footer -->
@@ -322,8 +332,38 @@
                         <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                         <span>Sistem Online</span>
                     </div>
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-bps-orange to-bps-yellow flex items-center justify-center text-white shadow-lg cursor-pointer">
-                        <i class="fa-solid fa-user"></i>
+                    
+                    <!-- Profile Dropdown -->
+                    <div class="relative" id="user-profile-dropdown">
+                        <button type="button" onclick="toggleProfileDropdown(event)" class="flex items-center gap-3 focus:outline-none">
+                            <span class="hidden md:block text-right">
+                                <p class="text-bps-dark font-semibold text-sm leading-none mb-1">{{ Auth::user()->name ?? 'Guest' }}</p>
+                                <p class="text-gray-400 text-[10px] uppercase font-bold tracking-wider leading-none">
+                                    @if(Auth::user()->isSuperAdmin())
+                                        Super Admin
+                                    @elseif(Auth::user()->isAdminSosial())
+                                        Admin Sosial
+                                    @else
+                                        Admin IPDS
+                                    @endif
+                                </p>
+                            </span>
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-bps-orange to-bps-yellow flex items-center justify-center text-white shadow-lg cursor-pointer hover:scale-105 transition-all">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="profile-dropdown-menu" class="hidden absolute right-0 mt-2 w-48 glass rounded-xl shadow-xl border border-gray-200/50 py-2 z-50 transition-all scale-95 duration-200">
+                            <div class="px-4 py-2 border-b border-gray-200/30">
+                                <p class="text-[10px] text-gray-400">Login sebagai:</p>
+                                <p class="text-xs font-bold text-bps-dark truncate">{{ Auth::user()->username ?? 'Guest' }}</p>
+                            </div>
+                            <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 hover:text-red-600 transition-all font-semibold">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                <span>Keluar Sistem</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -361,6 +401,9 @@
         $('.sidebar-link').on('click', function(e) {
             e.preventDefault();
             var section = $(this).data('section');
+
+            // Set hash so page refresh keeps this tab
+            window.location.hash = section;
 
             // Update sidebar active state
             $('.sidebar-link').removeClass('active');
@@ -409,6 +452,19 @@
                 confirmButtonColor: '#ff4c10'
             });
         @endif
+
+        // Profile Dropdown Toggle
+        function toggleProfileDropdown(event) {
+            event.stopPropagation();
+            $('#profile-dropdown-menu').toggleClass('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#user-profile-dropdown').length) {
+                $('#profile-dropdown-menu').addClass('hidden');
+            }
+        });
     </script>
     
     @stack('scripts')

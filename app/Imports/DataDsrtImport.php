@@ -59,6 +59,13 @@ class DataDsrtImport extends DefaultValueBinder implements ToModel, WithHeadingR
             'waktu_ceklis_ipds' => $row['waktu_ceklis_ipds'] ?? null,
             'petugas_susenas' => $row['petugas_susenas'] ?? null,
             'petugas_seruti' => $row['petugas_seruti'] ?? null,
+            'r203_kor' => $row['r203_kor'] ?? null,
+            'r203_kp' => $row['r203_kp'] ?? null,
+            'r301_jumlah_art' => $row['r301_jumlah_art'] ?? null,
+            'r304_vsen26kp' => $row['r304_vsen26kp'] ?? null,
+            'r305_vsen26kp' => $row['r305_vsen26kp'] ?? null,
+            'blok_catatan_kor' => in_array(strtolower(trim($row['blok_catatan_kor'] ?? '')), ['v', '1', 'ya', 'yes', 'true', 'x']) ? true : false,
+            'blok_catatan_kp' => in_array(strtolower(trim($row['blok_catatan_kp'] ?? '')), ['v', '1', 'ya', 'yes', 'true', 'x']) ? true : false,
         ]);
     }
 
