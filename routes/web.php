@@ -23,6 +23,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/datatable/dssls', [DashboardController::class, 'datatableDssls'])->name('dashboard.datatable_dssls');
     Route::get('/dashboard/datatable/dsrt', [DashboardController::class, 'datatableDsrt'])->name('dashboard.datatable_dsrt');
     Route::get('/dashboard/petugas-options', [DashboardController::class, 'petugasOptions'])->name('dashboard.petugas_options');
+    Route::get('/dashboard/summary', [DashboardController::class, 'summaryData'])->name('dashboard.summary');
     Route::post('/import-petugas-lapangan', [PetugasLapanganController::class, 'import'])->name('petugas_lapangan.import');
 
     Route::post('/import-petugas-entry', [PetugasEntryController::class, 'import'])->name('petugas_entry.import');

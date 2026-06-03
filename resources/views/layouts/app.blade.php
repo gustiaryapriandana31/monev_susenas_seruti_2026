@@ -45,6 +45,9 @@
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -259,9 +262,14 @@
                 </div>
 
                 <!-- Navigation Links -->
-                @php $activeTab = session('active_tab', 'lapangan'); @endphp
+                @php $activeTab = session('active_tab', 'dashboard'); @endphp
                 <nav class="flex-1 px-4 space-y-2 py-4">
                     <div class="text-gray-400 text-xs font-bold uppercase tracking-widest px-4 mb-4">Main Menu</div>
+                    
+                    <a href="#" data-section="dashboard" class="sidebar-link {{ $activeTab === 'dashboard' ? 'active' : '' }} flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:text-white transition-all duration-300">
+                        <i class="fa-solid fa-chart-pie w-6"></i>
+                        <span class="font-medium">Dashboard Utama</span>
+                    </a>
                     
                     <a href="#" data-section="lapangan" class="sidebar-link {{ $activeTab === 'lapangan' ? 'active' : '' }} flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:text-white transition-all duration-300">
                         <i class="fa-solid fa-users w-6"></i>
@@ -321,7 +329,7 @@
                     </button>
                     <div>
                         <h2 id="current-section-title" class="text-bps-dark font-bold text-xl">@php
-                            echo ['lapangan'=>'Petugas Lapangan','entry'=>'Petugas Entry Data','dssls'=>'Data DSSLS','dsrt'=>'Data DSRT'][$activeTab] ?? 'Dashboard';
+                            echo ['dashboard'=>'Dashboard Utama','lapangan'=>'Petugas Lapangan','entry'=>'Petugas Entry Data','dssls'=>'Data DSSLS','dsrt'=>'Data DSRT'][$activeTab] ?? 'Dashboard Utama';
                         @endphp</h2>
                         <p class="text-gray-500 text-xs">Monitoring Sensus Ekonomi 2026</p>
                     </div>

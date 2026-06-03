@@ -1,14 +1,255 @@
 @extends('layouts.app')
 
 @php
-    $activeTab = session('active_tab', 'lapangan');
-    $isSuperAdmin = Auth::user()->isSuperAdmin();
+    $activeTab = session('active_tab', 'dashboard');
+    $isSuperAdmin  = Auth::user()->isSuperAdmin();
     $isAdminIpds = Auth::user()->isAdminIpds();
     $isAdminSosial = Auth::user()->isAdminSosial();
 @endphp
 
 @section('content')
     <div class="space-y-8">
+
+        <!-- =========================================================
+         Section: Dashboard Utama
+    ========================================================== -->
+    <div id="section-dashboard" class="dashboard-section {{ $activeTab !== 'dashboard' ? 'hidden' : '' }} space-y-6">
+        
+        <!-- Interactive Location Filters -->
+        <div class="glass p-6 rounded-2xl flex flex-wrap gap-4 items-center justify-between shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-bps-orange/10 flex items-center justify-center text-bps-orange">
+                    <i class="fa-solid fa-filter text-lg"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-bps-dark">Filter Wilayah</h4>
+                    <p class="text-xs text-gray-500">Batasi statistik berdasarkan kecamatan dan desa</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-4 w-full md:w-auto">
+                <div class="w-full md:w-48">
+                    <select id="filter-kecamatan" class="w-full rounded-lg border border-gray-200 p-2.5 text-xs focus:ring-bps-orange focus:outline-none">
+                        <option value="">Semua Kecamatan</option>
+                    </select>
+                </div>
+                <div class="w-full md:w-48">
+                    <select id="filter-desa" class="w-full rounded-lg border border-gray-200 p-2.5 text-xs focus:ring-bps-orange focus:outline-none" disabled>
+                        <option value="">Semua Desa/Kelurahan</option>
+                    </select>
+                </div>
+                <button id="btn-reset-filter" class="w-full md:w-auto px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrows-rotate"></i> Reset
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-sm">
+                <div>
+                    <p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Total PPL</p>
+                    <h4 class="text-3xl font-black text-bps-dark" id="summary-ppl">...</h4>
+                </div>
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-tr from-bps-orange to-bps-yellow flex items-center justify-center text-white shadow-lg">
+                    <i class="fa-solid fa-users text-2xl"></i>
+                </div>
+            </div>
+            <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-sm">
+                <div>
+                    <p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Total PML</p>
+                    <h4 class="text-3xl font-black text-bps-dark" id="summary-pml">...</h4>
+                </div>
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-tr from-bps-yellow to-orange-400 flex items-center justify-center text-white shadow-lg">
+                    <i class="fa-solid fa-user-tie text-2xl"></i>
+                </div>
+            </div>
+            <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-sm">
+                <div>
+                    <p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Total Entry</p>
+                    <h4 class="text-3xl font-black text-bps-dark" id="summary-entry">...</h4>
+                </div>
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-tr from-orange-500 to-red-500 flex items-center justify-center text-white shadow-lg">
+                    <i class="fa-solid fa-user-pen text-2xl"></i>
+                </div>
+            </div>
+            <div class="glass p-6 rounded-2xl flex items-center justify-between shadow-sm">
+                <div>
+                    <p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Total Petugas</p>
+                    <h4 class="text-3xl font-black text-bps-dark" id="summary-total-petugas">...</h4>
+                </div>
+                <div class="w-14 h-14 rounded-xl bg-gray-800 flex items-center justify-center text-white shadow-lg">
+                    <i class="fa-solid fa-users-gear text-2xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overall Progress Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- DSSLS Overall Progress Card -->
+            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="text-sm font-bold uppercase tracking-wider text-gray-500">Progres Keseluruhan DSSLS</h4>
+                        <span class="text-xs font-black text-white px-2 py-0.5 rounded-full bg-bps-orange" id="dssls-progress-badge">0%</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4">SLS yang selesai seluruh tahapan (Ceklis Lapangan, Sosial, dan IPDS bernilai YA)</p>
+                </div>
+                <div>
+                    <div class="w-full bg-gray-100 rounded-full h-3 mb-2 overflow-hidden">
+                        <div id="dssls-progress-bar" class="bg-gradient-to-r from-bps-orange to-bps-yellow h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-500">
+                        <span>Selesai: <strong id="dssls-completed-count">0</strong> SLS</span>
+                        <span>Target: <strong id="dssls-total-count">0</strong> SLS</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DSRT Overall Progress Card -->
+            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h4 class="text-sm font-bold uppercase tracking-wider text-gray-500">Progres Keseluruhan DSRT</h4>
+                        <span class="text-xs font-black text-white px-2 py-0.5 rounded-full bg-bps-orange" id="dsrt-progress-badge">0%</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4">Keluarga/Ruta yang selesai seluruh tahapan (Ceklis Lapangan, Sosial, IPDS, dan Pemeriksaan bernilai YA)</p>
+                </div>
+                <div>
+                    <div class="w-full bg-gray-100 rounded-full h-3 mb-2 overflow-hidden">
+                        <div id="dsrt-progress-bar" class="bg-gradient-to-r from-bps-orange to-bps-yellow h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-500">
+                        <span>Selesai: <strong id="dsrt-completed-count">0</strong> Keluarga/Ruta</span>
+                        <span>Target: <strong id="dsrt-total-count">0</strong> Keluarga/Ruta</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. Jumlah Ceklis breakdown charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- DSSLS Progress Chart -->
+            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-bps-dark">Jumlah Ceklis DSSLS</h3>
+                        <p class="text-gray-500 text-xs">Total Target: <span id="chart-dssls-total" class="font-bold text-bps-dark">...</span> SLS</p>
+                    </div>
+                </div>
+                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
+                    <canvas id="chart-dssls"></canvas>
+                </div>
+            </div>
+
+            <!-- DSRT Progress Chart -->
+            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-bps-dark">Jumlah Ceklis DSRT</h3>
+                        <p class="text-gray-500 text-xs">Total Target: <span id="chart-dsrt-total" class="font-bold text-bps-dark">...</span> Keluarga/Ruta</p>
+                    </div>
+                </div>
+                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
+                    <canvas id="chart-dsrt"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workload Sebaran Charts (3 & 4) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Workload DSSLS -->
+            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-bps-dark">Sebaran Penugasan DSSLS</h3>
+                        <p class="text-gray-500 text-xs">Jumlah SLS yang dibebankan per petugas</p>
+                    </div>
+                    <div>
+                        <select id="select-workload-dssls" class="rounded-lg border border-gray-200 p-2 text-xs focus:ring-bps-orange focus:outline-none">
+                            <option value="ppl">Pencacah (PPL)</option>
+                            <option value="pml">Pengawas (PML)</option>
+                            <option value="entry">Petugas Entry</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
+                    <canvas id="chart-workload-dssls"></canvas>
+                </div>
+            </div>
+
+            <!-- Workload DSRT -->
+            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-bps-dark">Sebaran Penugasan DSRT</h3>
+                        <p class="text-gray-500 text-xs">Jumlah DSRT yang dibebankan per petugas</p>
+                    </div>
+                    <div>
+                        <select id="select-workload-dsrt" class="rounded-lg border border-gray-200 p-2 text-xs focus:ring-bps-orange focus:outline-none">
+                            <option value="ppl">Pencacah (PPL)</option>
+                            <option value="pml">Pengawas (PML)</option>
+                            <option value="susenas">Petugas Susenas</option>
+                            <option value="seruti">Petugas Seruti</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
+                    <canvas id="chart-workload-dsrt"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- R203 Status splits (5) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- R203 KOR -->
+            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
+                <div class="mb-4">
+                    <h3 class="text-lg font-bold text-bps-dark">Persentase Status R203 KOR</h3>
+                    <p class="text-gray-500 text-xs">Distribusi status hasil pencacahan KOR</p>
+                </div>
+                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
+                    <canvas id="chart-r203-kor"></canvas>
+                </div>
+            </div>
+
+            <!-- R203 KP -->
+            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
+                <div class="mb-4">
+                    <h3 class="text-lg font-bold text-bps-dark">Persentase Status R203 KP</h3>
+                    <p class="text-gray-500 text-xs">Distribusi status hasil pencacahan KP</p>
+                </div>
+                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
+                    <canvas id="chart-r203-kp"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Catatan status splits (6) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Catatan KOR -->
+            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
+                <div class="mb-4">
+                    <h3 class="text-lg font-bold text-bps-dark">Catatan KOR (Ya vs Tidak)</h3>
+                    <p class="text-gray-500 text-xs">Persentase dokumen KOR yang memiliki catatan</p>
+                </div>
+                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
+                    <canvas id="chart-catatan-kor"></canvas>
+                </div>
+            </div>
+
+            <!-- Catatan KP -->
+            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
+                <div class="mb-4">
+                    <h3 class="text-lg font-bold text-bps-dark">Catatan KP (Ya vs Tidak)</h3>
+                    <p class="text-gray-500 text-xs">Persentase dokumen KP yang memiliki catatan</p>
+                </div>
+                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
+                    <canvas id="chart-catatan-kp"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
 
         <!-- =========================================================
              Section: Petugas Lapangan

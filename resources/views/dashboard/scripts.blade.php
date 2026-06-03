@@ -451,8 +451,289 @@
     }
 
     function columnsFor(section) {
+        if (section === 'dashboard') return []; // No DataTables for dashboard
         return { lapangan:lapanganColumns, entry:entryColumns, dssls:dsslsColumns, dsrt:dsrtColumns }[section]();
     }
+
+    // ── Dashboard Chart & Summary Logic ──────────────────────────────────────────
+    
+    var dashboardCharts = {};
+    var dashboardData = null; // store current api response globally for toggles
+
+    function initChart(canvasId, type, labels, datasets, options = {}) {
+        var canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+
+        // Clear any previous overlay text/styles
+        var container = canvas.parentElement;
+        if (container) {
+            var existingText = container.querySelector('.chart-no-data-text');
+            if (existingText) existingText.remove();
+        }
+        
+        if (dashboardCharts[canvasId]) {
+            dashboardCharts[canvasId].destroy();
+        }
+
+        // If no data is available, draw text placeholder instead of empty chart
+        var hasData = datasets && datasets.some(function(ds) {
+            return ds.data && ds.data.length > 0 && ds.data.some(function(v) { return Number(v) > 0; });
+        });
+
+        if (!hasData) {
+            canvas.style.display = 'none';
+            if (container) {
+                var txt = document.createElement('div');
+                txt.className = 'chart-no-data-text text-sm font-semibold text-gray-400 absolute inset-0 flex items-center justify-center';
+                txt.innerText = 'Tidak ada data penugasan atau progres';
+                container.appendChild(txt);
+            }
+            return;
+        }
+
+        canvas.style.display = 'block';
+
+        var defaultOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { family: "'Plus Jakarta Sans', sans-serif", size: 10 },
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                }
+            }
+        };
+
+        // Merge options
+        var mergedOptions = $.extend(true, {}, defaultOptions, options);
+
+        dashboardCharts[canvasId] = new Chart(canvas.getContext('2d'), {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: mergedOptions
+        });
+    }
+
+    // Populate Kecamatan and dependent Desa dropdowns
+    var filterOptionsPopulated = false;
+    function populateFilters(kecDesa) {
+        if (filterOptionsPopulated) return;
+        var $kecSelect = $('#filter-kecamatan');
+        $kecSelect.find('option:not(:first)').remove();
+
+        Object.keys(kecDesa).sort().forEach(function(kec) {
+            $kecSelect.append($('<option>', { value: kec.trim(), text: kec.trim() }));
+        });
+
+        filterOptionsPopulated = true;
+
+        // Handle dependent Desa selection
+        $kecSelect.on('change', function() {
+            var selectedKec = $(this).val();
+            var $desaSelect = $('#filter-desa');
+            $desaSelect.find('option:not(:first)').remove();
+
+            if (!selectedKec) {
+                $desaSelect.prop('disabled', true);
+                loadDashboardSummary('', '');
+                return;
+            }
+
+            // Find matching key (accounting for trailing spaces in database data)
+            var matchKey = Object.keys(kecDesa).find(function(k) { return k.trim() === selectedKec; });
+            if (matchKey && kecDesa[matchKey] && kecDesa[matchKey].length > 0) {
+                kecDesa[matchKey].forEach(function(desa) {
+                    $desaSelect.append($('<option>', { value: desa.trim(), text: desa.trim() }));
+                });
+                $desaSelect.prop('disabled', false);
+            } else {
+                $desaSelect.prop('disabled', true);
+            }
+
+            loadDashboardSummary(selectedKec, '');
+        });
+
+        $('#filter-desa').on('change', function() {
+            var selectedKec = $('#filter-kecamatan').val();
+            var selectedDesa = $(this).val();
+            loadDashboardSummary(selectedKec, selectedDesa);
+        });
+
+        $('#btn-reset-filter').on('click', function() {
+            $('#filter-kecamatan').val('');
+            var $desaSelect = $('#filter-desa');
+            $desaSelect.find('option:not(:first)').remove();
+            $desaSelect.prop('disabled', true);
+            loadDashboardSummary('', '');
+        });
+    }
+
+    // Workload Draw Helpers
+    function drawWorkloadDssls() {
+        if (!dashboardData) return;
+        var role = $('#select-workload-dssls').val();
+        var dataList = dashboardData.dssls.sebaran[role] || [];
+
+        // Shorten long names
+        var labels = dataList.map(function(item) {
+            var nameParts = item.nama.split(' ');
+            return nameParts.slice(0, 2).join(' ');
+        });
+        var values = dataList.map(function(item) { return item.total; });
+
+        initChart('chart-workload-dssls', 'bar', labels, [{
+            label: 'Beban SLS',
+            data: values,
+            backgroundColor: '#FF8C00',
+            borderRadius: 4
+        }], {
+            scales: {
+                y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#e2e8f0' } },
+                x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+            }
+        });
+    }
+
+    function drawWorkloadDsrt() {
+        if (!dashboardData) return;
+        var role = $('#select-workload-dsrt').val();
+        var dataList = dashboardData.dsrt.sebaran[role] || [];
+
+        var labels = dataList.map(function(item) {
+            var nameParts = item.nama.split(' ');
+            return nameParts.slice(0, 2).join(' ');
+        });
+        var values = dataList.map(function(item) { return item.total; });
+
+        initChart('chart-workload-dsrt', 'bar', labels, [{
+            label: 'Beban DSRT',
+            data: values,
+            backgroundColor: '#3b82f6',
+            borderRadius: 4
+        }], {
+            scales: {
+                y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#e2e8f0' } },
+                x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+            }
+        });
+    }
+
+    function loadDashboardSummary(kecamatan = '', desa = '') {
+        var url = '{{ route("dashboard.summary") }}';
+        $.getJSON(url, { kecamatan: kecamatan, desa: desa }).done(function(res) {
+            dashboardData = res;
+            
+            // 1. Populate filters once
+            populateFilters(res.kec_desa);
+
+            // Update Summary Cards
+            $('#summary-ppl').text(res.petugas.ppl);
+            $('#summary-pml').text(res.petugas.pml);
+            $('#summary-entry').text(res.petugas.entry);
+            $('#summary-total-petugas').text(res.petugas.total);
+
+            $('#chart-dssls-total').text(res.dssls.total);
+            $('#chart-dsrt-total').text(res.dsrt.total);
+
+            // Update Overall Progress Section
+            $('#dssls-progress-badge').text(res.dssls.progress + '%');
+            $('#dssls-progress-bar').css('width', res.dssls.progress + '%');
+            $('#dssls-completed-count').text(res.dssls.completed);
+            $('#dssls-total-count').text(res.dssls.total);
+
+            $('#dsrt-progress-badge').text(res.dsrt.progress + '%');
+            $('#dsrt-progress-bar').css('width', res.dsrt.progress + '%');
+            $('#dsrt-completed-count').text(res.dsrt.completed);
+            $('#dsrt-total-count').text(res.dsrt.total);
+
+            // 1. Chart DSSLS Progress breakdown (Bar)
+            initChart('chart-dssls', 'bar', 
+                ['Lapangan', 'Sosial', 'IPDS'], 
+                [{
+                    label: 'Selesai Ceklis',
+                    data: [res.dssls.lap, res.dssls.sosial, res.dssls.ipds],
+                    backgroundColor: '#FF8C00',
+                    borderRadius: 4
+                }], {
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#e2e8f0' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            );
+
+            // 1. Chart DSRT Progress breakdown (Bar)
+            initChart('chart-dsrt', 'bar',
+                ['Lapangan', 'Sosial', 'IPDS', 'Pemeriksaan'],
+                [{
+                    label: 'Selesai Ceklis',
+                    data: [res.dsrt.lap, res.dsrt.sosial, res.dsrt.ipds, res.dsrt.pemeriksaan],
+                    backgroundColor: '#3b82f6',
+                    borderRadius: 4
+                }],
+                {
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#e2e8f0' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            );
+
+            // 3. DSSLS Workload Chart
+            drawWorkloadDssls();
+
+            // 4. DSRT Workload Chart
+            drawWorkloadDsrt();
+
+            // 5. R203 KOR status pie chart
+            var korLabels = res.dsrt.r203_kor.map(function(item) { return item.label; });
+            var korValues = res.dsrt.r203_kor.map(function(item) { return item.total; });
+            initChart('chart-r203-kor', 'pie', korLabels, [{
+                data: korValues,
+                backgroundColor: ['#22c55e', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#94a3b8']
+            }]);
+
+            // 5. R203 KP status pie chart
+            var kpLabels = res.dsrt.r203_kp.map(function(item) { return item.label; });
+            var kpValues = res.dsrt.r203_kp.map(function(item) { return item.total; });
+            initChart('chart-r203-kp', 'pie', kpLabels, [{
+                data: kpValues,
+                backgroundColor: ['#22c55e', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#94a3b8']
+            }]);
+
+            // 6. Catatan KOR Ya vs Tidak
+            var catKorLabels = res.dsrt.catatan_kor.map(function(item) { return item.label; });
+            var catKorValues = res.dsrt.catatan_kor.map(function(item) { return item.total; });
+            initChart('chart-catatan-kor', 'doughnut', catKorLabels, [{
+                data: catKorValues,
+                backgroundColor: ['#e2e8f0', '#ef4444']
+            }]);
+
+            // 6. Catatan KP Ya vs Tidak
+            var catKpLabels = res.dsrt.catatan_kp.map(function(item) { return item.label; });
+            var catKpValues = res.dsrt.catatan_kp.map(function(item) { return item.total; });
+            initChart('chart-catatan-kp', 'doughnut', catKpLabels, [{
+                data: catKpValues,
+                backgroundColor: ['#e2e8f0', '#ef4444']
+            }]);
+
+        }).fail(function() {
+            console.error("Gagal memuat data dashboard.");
+        });
+    }
+
+    // Set up change listeners for dynamic toggles
+    $(document).ready(function() {
+        $('#select-workload-dssls').on('change', drawWorkloadDssls);
+        $('#select-workload-dsrt').on('change', drawWorkloadDsrt);
+    });
 
     // ── DataTables Init ──────────────────────────────────────────────────────────
 
@@ -482,6 +763,10 @@
         };
 
         function initServerTable(section) {
+            if (section === 'dashboard') {
+                loadDashboardSummary();
+                return;
+            }
             if (dataTables[section]) { dataTables[section].columns.adjust(); return; }
             $('#tbody-' + section).empty();
             dataTables[section] = $('#dt-' + section).DataTable($.extend(true,{},dtConfigs,{
@@ -495,7 +780,7 @@
         withPetugasOptions(); // pre-fetch
 
         var hash          = window.location.hash.substring(1);
-        var activeSection = '{{ session("active_tab", "lapangan") }}';
+        var activeSection = '{{ session("active_tab", "dashboard") }}';
         var available     = $('.sidebar-link').map(function(){ return $(this).data('section'); }).get();
         if (hash && available.includes(hash)) activeSection = hash;
 

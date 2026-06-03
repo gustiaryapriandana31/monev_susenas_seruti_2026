@@ -46,6 +46,208 @@ class DashboardController extends Controller
         }));
     }
 
+    public function summaryData(Request $request)
+    {
+        $kecamatan = $request->input('kecamatan');
+        $desa = $request->input('desa');
+
+        // Dynamic cache key based on filters
+        $cacheKey = 'dashboard_summary_' . md5($kecamatan . '_' . $desa);
+
+        // Dynamic list of Kecamatan and Desa (always calculated or cached for 1 hour)
+        $kecDesaList = Cache::remember('dashboard_kec_desa_list', 3600, function() {
+            return DataDsrt::select('nmkec', 'nmdesa')
+                ->distinct()
+                ->orderBy('nmkec')
+                ->orderBy('nmdesa')
+                ->get()
+                ->groupBy('nmkec')
+                ->map(function($items) {
+                    return $items->pluck('nmdesa')->unique()->values();
+                });
+        });
+
+        $data = Cache::remember($cacheKey, 120, function () use ($kecamatan, $desa) {
+            $totalPpl = PetugasLapangan::where('jabatan', 'Pencacah (PPL)')->count();
+            $totalPml = PetugasLapangan::where('jabatan', 'Pengawas (PML)')->count();
+            $totalEntry = PetugasEntry::count();
+
+            // Set up queries
+            $dsslsQuery = DataDssls::query();
+            $dsrtQuery = DataDsrt::query();
+
+            if ($kecamatan) {
+                $dsslsQuery->whereRaw('TRIM(nama_kecamatan) = ?', [$kecamatan]);
+                $dsrtQuery->where('nmkec', $kecamatan);
+            }
+            if ($desa) {
+                $dsslsQuery->whereRaw('TRIM(nama_desa_kelurahan) = ?', [$desa]);
+                $dsrtQuery->where('nmdesa', $desa);
+            }
+
+            // Target counts
+            $dsslsTotal = (clone $dsslsQuery)->count();
+            $dsslsLap = (clone $dsslsQuery)->where('ceklis_lap', true)->count();
+            $dsslsSosial = (clone $dsslsQuery)->where('ceklis_sosial', true)->count();
+            $dsslsIpds = (clone $dsslsQuery)->where('ceklis_ipds', true)->count();
+
+            $dsrtTotal = (clone $dsrtQuery)->count();
+            $dsrtLap = (clone $dsrtQuery)->where('ceklis_lap', true)->count();
+            $dsrtSosial = (clone $dsrtQuery)->where('ceklis_sosial', true)->count();
+            $dsrtIpds = (clone $dsrtQuery)->where('ceklis_ipds', true)->count();
+            $dsrtPemeriksaan = (clone $dsrtQuery)->where('ceklis_pemeriksaan', true)->count();
+
+            // Overall progress: fully completed (all checklists = 1)
+            $dsslsFullyCompleted = (clone $dsslsQuery)
+                ->where('ceklis_lap', true)
+                ->where('ceklis_sosial', true)
+                ->where('ceklis_ipds', true)
+                ->count();
+
+            $dsrtFullyCompleted = (clone $dsrtQuery)
+                ->where('ceklis_lap', true)
+                ->where('ceklis_sosial', true)
+                ->where('ceklis_ipds', true)
+                ->where('ceklis_pemeriksaan', true)
+                ->count();
+
+            $dsslsProgress = $dsslsTotal > 0 ? round(($dsslsFullyCompleted / $dsslsTotal) * 100, 1) : 0;
+            $dsrtProgress = $dsrtTotal > 0 ? round(($dsrtFullyCompleted / $dsrtTotal) * 100, 1) : 0;
+
+            // Sebaran PML, PPL, Entry di DSSLS
+            $pplDssls = (clone $dsslsQuery)->select('petugas_ppl', DB::raw('count(*) as total'))
+                ->whereNotNull('petugas_ppl')->where('petugas_ppl', '!=', '')
+                ->groupBy('petugas_ppl')->orderByDesc('total')->get()
+                ->map(function ($item) {
+                    $p = PetugasLapangan::where('kode_petugas', $item->petugas_ppl)->first();
+                    return ['nama' => $p ? $p->nama_petugas : $item->petugas_ppl, 'total' => $item->total];
+                });
+
+            $pmlDssls = (clone $dsslsQuery)->select('petugas_pml', DB::raw('count(*) as total'))
+                ->whereNotNull('petugas_pml')->where('petugas_pml', '!=', '')
+                ->groupBy('petugas_pml')->orderByDesc('total')->get()
+                ->map(function ($item) {
+                    $p = PetugasLapangan::where('kode_petugas', $item->petugas_pml)->first();
+                    return ['nama' => $p ? $p->nama_petugas : $item->petugas_pml, 'total' => $item->total];
+                });
+
+            $entryDssls = (clone $dsslsQuery)->select('petugas_entry', DB::raw('count(*) as total'))
+                ->whereNotNull('petugas_entry')->where('petugas_entry', '!=', '')
+                ->groupBy('petugas_entry')->orderByDesc('total')->get()
+                ->map(function ($item) {
+                    $p = PetugasEntry::where('kode_petugas', $item->petugas_entry)->first();
+                    return ['nama' => $p ? $p->nama_petugas : $item->petugas_entry, 'total' => $item->total];
+                });
+
+            // Sebaran PML, PPL, SUSENAS, SERUTI di DSRT
+            $pplDsrt = (clone $dsrtQuery)->select('petugas_ppl', DB::raw('count(*) as total'))
+                ->whereNotNull('petugas_ppl')->where('petugas_ppl', '!=', '')
+                ->groupBy('petugas_ppl')->orderByDesc('total')->get()
+                ->map(function ($item) {
+                    $p = PetugasLapangan::where('kode_petugas', $item->petugas_ppl)->first();
+                    return ['nama' => $p ? $p->nama_petugas : $item->petugas_ppl, 'total' => $item->total];
+                });
+
+            $pmlDsrt = (clone $dsrtQuery)->select('petugas_pml', DB::raw('count(*) as total'))
+                ->whereNotNull('petugas_pml')->where('petugas_pml', '!=', '')
+                ->groupBy('petugas_pml')->orderByDesc('total')->get()
+                ->map(function ($item) {
+                    $p = PetugasLapangan::where('kode_petugas', $item->petugas_pml)->first();
+                    return ['nama' => $p ? $p->nama_petugas : $item->petugas_pml, 'total' => $item->total];
+                });
+
+            $susenasDsrt = (clone $dsrtQuery)->select('petugas_susenas', DB::raw('count(*) as total'))
+                ->whereNotNull('petugas_susenas')->where('petugas_susenas', '!=', '')
+                ->groupBy('petugas_susenas')->orderByDesc('total')->get()
+                ->map(function ($item) {
+                    $p = PetugasEntry::where('kode_petugas', $item->petugas_susenas)->first();
+                    return ['nama' => $p ? $p->nama_petugas : $item->petugas_susenas, 'total' => $item->total];
+                });
+
+            $serutiDsrt = (clone $dsrtQuery)->select('petugas_seruti', DB::raw('count(*) as total'))
+                ->whereNotNull('petugas_seruti')->where('petugas_seruti', '!=', '')
+                ->groupBy('petugas_seruti')->orderByDesc('total')->get()
+                ->map(function ($item) {
+                    $p = PetugasEntry::where('kode_petugas', $item->petugas_seruti)->first();
+                    return ['nama' => $p ? $p->nama_petugas : $item->petugas_seruti, 'total' => $item->total];
+                });
+
+            // R203 KOR & KP Status counts
+            $r203Kor = (clone $dsrtQuery)->select('r203_kor', DB::raw('count(*) as total'))->groupBy('r203_kor')->get()
+                ->map(function ($item) {
+                    $status = $item->r203_kor;
+                    $label = $status ? $status->label() : 'Belum Terisi';
+                    return ['label' => $label, 'total' => $item->total];
+                });
+
+            $r203Kp = (clone $dsrtQuery)->select('r203_kp', DB::raw('count(*) as total'))->groupBy('r203_kp')->get()
+                ->map(function ($item) {
+                    $status = $item->r203_kp;
+                    $label = $status ? $status->label() : 'Belum Terisi';
+                    return ['label' => $label, 'total' => $item->total];
+                });
+
+            // Catatan KOR & KP counts
+            $catatanKor = (clone $dsrtQuery)->select('blok_catatan_kor', DB::raw('count(*) as total'))->groupBy('blok_catatan_kor')->get()
+                ->map(function ($item) {
+                    $label = $item->blok_catatan_kor ? 'Ada Catatan (Ya)' : 'Tidak Ada Catatan (Tidak)';
+                    return ['label' => $label, 'total' => $item->total];
+                });
+
+            $catatanKp = (clone $dsrtQuery)->select('blok_catatan_kp', DB::raw('count(*) as total'))->groupBy('blok_catatan_kp')->get()
+                ->map(function ($item) {
+                    $label = $item->blok_catatan_kp ? 'Ada Catatan (Ya)' : 'Tidak Ada Catatan (Tidak)';
+                    return ['label' => $label, 'total' => $item->total];
+                });
+
+            return [
+                'petugas' => [
+                    'ppl' => $totalPpl,
+                    'pml' => $totalPml,
+                    'entry' => $totalEntry,
+                    'total' => $totalPpl + $totalPml + $totalEntry
+                ],
+                'dssls' => [
+                    'total' => $dsslsTotal,
+                    'lap' => $dsslsLap,
+                    'sosial' => $dsslsSosial,
+                    'ipds' => $dsslsIpds,
+                    'progress' => $dsslsProgress,
+                    'completed' => $dsslsFullyCompleted,
+                    'sebaran' => [
+                        'ppl' => $pplDssls,
+                        'pml' => $pmlDssls,
+                        'entry' => $entryDssls
+                    ]
+                ],
+                'dsrt' => [
+                    'total' => $dsrtTotal,
+                    'lap' => $dsrtLap,
+                    'sosial' => $dsrtSosial,
+                    'ipds' => $dsrtIpds,
+                    'pemeriksaan' => $dsrtPemeriksaan,
+                    'progress' => $dsrtProgress,
+                    'completed' => $dsrtFullyCompleted,
+                    'sebaran' => [
+                        'ppl' => $pplDsrt,
+                        'pml' => $pmlDsrt,
+                        'susenas' => $susenasDsrt,
+                        'seruti' => $serutiDsrt
+                    ],
+                    'r203_kor' => $r203Kor,
+                    'r203_kp' => $r203Kp,
+                    'catatan_kor' => $catatanKor,
+                    'catatan_kp' => $catatanKp
+                ]
+            ];
+        });
+
+        // Add the filter options at the top level
+        $data['kec_desa'] = $kecDesaList;
+
+        return response()->json($data);
+    }
+
     public function datatableLapangan(Request $request)
     {
         $columns = [
