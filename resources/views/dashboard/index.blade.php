@@ -429,7 +429,8 @@
                         <p class="text-gray-500 text-sm">Monitoring progres pemuktahiran DSRT</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-3">
- action="{{ route('data_dsrt.import') }}" method="POST" enctype="multipart/form-data"
+                        @if ($isSuperAdmin)
+                            <form action="{{ route('data_dsrt.import') }}" method="POST" enctype="multipart/form-data"
                                 class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 shadow-inner">
                                 @csrf
                                 <input type="file" name="file_excel"
