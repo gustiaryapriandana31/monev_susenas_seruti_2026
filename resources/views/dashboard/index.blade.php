@@ -169,18 +169,6 @@
                     </div>
                     @if ($isSuperAdmin || $isAdminSosial)
                         <div class="flex flex-wrap items-center gap-3">
-                            @if ($isSuperAdmin || $isAdminSosial)
-                                <div class="flex gap-2">
-                                    <button type="button" onclick="deleteSelected('lapangan')"
-                                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-xs font-bold transition-all shadow-sm">
-                                        <i class="fa-solid fa-trash-can mr-2"></i>Hapus Terpilih
-                                    </button>
-                                    <button type="button" onclick="deleteAll('lapangan')"
-                                        class="bg-red-800 hover:bg-red-900 text-white px-4 py-2 rounded-md text-xs font-bold transition-all shadow-sm">
-                                        <i class="fa-solid fa-dumpster mr-2"></i>Reset
-                                    </button>
-                                </div>
-                            @endif
                             <form action="{{ route('petugas_lapangan.import') }}" method="POST"
                                 enctype="multipart/form-data"
                                 class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 shadow-inner">
@@ -200,6 +188,21 @@
                     @endif
                 </div>
             </div>
+
+            {{-- Tombol hapus/reset di-inject ke toolbar DataTables --}}
+            @if ($isSuperAdmin || $isAdminSosial)
+            <div id="dt-actions-lapangan" class="hidden gap-1.5">
+                <button type="button" onclick="deleteSelected('lapangan')"
+                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-bold transition-all shadow-sm whitespace-nowrap">
+                    <i class="fa-solid fa-trash-can mr-1.5"></i>Hapus Terpilih
+                </button>
+                <button type="button" onclick="deleteAll('lapangan')"
+                    class="bg-red-800 hover:bg-red-900 text-white px-3 py-1.5 rounded-md text-xs font-bold transition-all shadow-sm whitespace-nowrap">
+                    <i class="fa-solid fa-dumpster mr-1.5"></i>Reset
+                </button>
+            </div>
+            @endif
+
             <div class="glass p-6 rounded-md overflow-x-auto">
                 <table id="dt-lapangan" class="display nowrap w-full" style="width:100%">
                     <thead>
@@ -245,18 +248,6 @@
                     </div>
                     @if ($isSuperAdmin || $isAdminIpds)
                         <div class="flex flex-wrap items-center gap-3">
-                            @if ($isSuperAdmin || $isAdminIpds)
-                                <div class="flex gap-2">
-                                    <button type="button" onclick="deleteSelected('entry')"
-                                        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-xs font-bold transition-all shadow-sm">
-                                        <i class="fa-solid fa-trash-can mr-2"></i>Hapus Terpilih
-                                    </button>
-                                    <button type="button" onclick="deleteAll('entry')"
-                                        class="bg-red-800 hover:bg-red-900 text-white px-4 py-2 rounded-md text-xs font-bold transition-all shadow-sm">
-                                        <i class="fa-solid fa-dumpster mr-2"></i>Reset
-                                    </button>
-                                </div>
-                            @endif
                             <form action="{{ route('petugas_entry.import') }}" method="POST" enctype="multipart/form-data"
                                 class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 shadow-inner">
                                 @csrf
@@ -275,6 +266,21 @@
                     @endif
                 </div>
             </div>
+
+            {{-- Tombol hapus/reset di-inject ke toolbar DataTables --}}
+            @if ($isSuperAdmin || $isAdminIpds)
+            <div id="dt-actions-entry" class="hidden gap-1.5">
+                <button type="button" onclick="deleteSelected('entry')"
+                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-bold transition-all shadow-sm whitespace-nowrap">
+                    <i class="fa-solid fa-trash-can mr-1.5"></i>Hapus Terpilih
+                </button>
+                <button type="button" onclick="deleteAll('entry')"
+                    class="bg-red-800 hover:bg-red-900 text-white px-3 py-1.5 rounded-md text-xs font-bold transition-all shadow-sm whitespace-nowrap">
+                    <i class="fa-solid fa-dumpster mr-1.5"></i>Reset
+                </button>
+            </div>
+            @endif
+
             <div class="glass p-6 rounded-md overflow-x-auto">
                 <table id="dt-entry" class="display nowrap w-full" style="width:100%">
                     <thead>
@@ -313,35 +319,20 @@
         ========================================================== -->
         <div id="section-dssls" class="dashboard-section {{ $activeTab !== 'dssls' ? 'hidden' : '' }} space-y-6">
             <div class="glass p-6 rounded-md">
-                <div class="flex flex-col gap-4">
-                    {{-- Baris atas: judul + mode lihat --}}
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h3 class="text-2xl font-bold text-bps-dark">Data DSSLS</h3>
-                            <p class="text-gray-500 text-sm">Monitoring progres pemuktahiran DSSLS</p>
-                        </div>
-                        @if ($isAdminIpds)
-                            <span class="text-xs text-gray-400 italic">
-                                <i class="fa-solid fa-eye mr-1"></i>Mode Lihat Saja
-                            </span>
-                        @endif
+                <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+                    {{-- Kiri: Judul --}}
+                    <div>
+                        <h3 class="text-2xl font-bold text-bps-dark">Data DSSLS</h3>
+                        <p class="text-gray-500 text-sm">Monitoring progres pemuktahiran DSSLS</p>
                     </div>
 
-                    {{-- Baris bawah: semua tombol aksi --}}
-                    @if (!$isAdminIpds)
+                    {{-- Kanan: Tombol aksi --}}
+                    @if ($isAdminIpds)
+                        <span class="text-xs text-gray-400 italic">
+                            <i class="fa-solid fa-eye mr-1"></i>Mode Lihat Saja
+                        </span>
+                    @else
                         <div class="flex flex-wrap items-center gap-3">
-
-                            {{-- Hapus --}}
-                            <div class="flex gap-2">
-                                <button type="button" onclick="deleteSelected('dssls')"
-                                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-xs font-bold transition-all shadow-sm">
-                                    <i class="fa-solid fa-trash-can mr-2"></i>Hapus Terpilih
-                                </button>
-                                <button type="button" onclick="deleteAll('dssls')"
-                                    class="bg-red-800 hover:bg-red-900 text-white px-4 py-2 rounded-md text-xs font-bold transition-all shadow-sm">
-                                    <i class="fa-solid fa-dumpster mr-2"></i>Reset
-                                </button>
-                            </div>
 
                             {{-- Import --}}
                             <form action="{{ route('data_dssls.import') }}" method="POST" enctype="multipart/form-data"
@@ -359,13 +350,28 @@
                             {{-- Export --}}
                             <a href="{{ route('data_dssls.export') }}"
                                 class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md text-xs font-bold transition-all shadow-sm whitespace-nowrap">
-                                <i class="fa-solid fa-file-excel mr-2"></i>Export DSSLS Pemutakhiran Sosial
+                                <i class="fa-solid fa-file-excel mr-2"></i>Export DSSLS Pemutakhiran
                             </a>
 
                         </div>
                     @endif
                 </div>
             </div>
+
+
+            {{-- Tombol hapus/reset di-inject ke toolbar DataTables --}}
+            @if (!$isAdminIpds)
+            <div id="dt-actions-dssls" class="hidden gap-1.5">
+                <button type="button" onclick="deleteSelected('dssls')"
+                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-bold transition-all shadow-sm whitespace-nowrap">
+                    <i class="fa-solid fa-trash-can mr-1.5"></i>Hapus Terpilih
+                </button>
+                <button type="button" onclick="deleteAll('dssls')"
+                    class="bg-red-800 hover:bg-red-900 text-white px-3 py-1.5 rounded-md text-xs font-bold transition-all shadow-sm whitespace-nowrap">
+                    <i class="fa-solid fa-dumpster mr-1.5"></i>Reset
+                </button>
+            </div>
+            @endif
 
             <div class="glass p-6 rounded-md overflow-x-auto">
                 <table id="dt-dssls" class="display nowrap w-full" style="width:100%">
@@ -423,18 +429,7 @@
                         <p class="text-gray-500 text-sm">Monitoring progres pemuktahiran DSRT</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-3">
-                        @if ($isSuperAdmin)
-                            <div class="flex gap-2">
-                                <button type="button" onclick="deleteSelected('dsrt')"
-                                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-xs font-bold transition-all shadow-sm">
-                                    <i class="fa-solid fa-trash-can mr-2"></i>Hapus Terpilih
-                                </button>
-                                <button type="button" onclick="deleteAll('dsrt')"
-                                    class="bg-red-800 hover:bg-red-900 text-white px-4 py-2 rounded-md text-xs font-bold transition-all shadow-sm">
-                                    <i class="fa-solid fa-dumpster mr-2"></i>Reset
-                                </button>
-                            </div>
-                            <form action="{{ route('data_dsrt.import') }}" method="POST" enctype="multipart/form-data"
+ action="{{ route('data_dsrt.import') }}" method="POST" enctype="multipart/form-data"
                                 class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 shadow-inner">
                                 @csrf
                                 <input type="file" name="file_excel"
@@ -523,6 +518,21 @@
                     </div>
                 </div>
             </div>
+
+
+            {{-- Tombol hapus/reset di-inject ke toolbar DataTables --}}
+            @if ($isSuperAdmin)
+            <div id="dt-actions-dsrt" class="hidden gap-1.5">
+                <button type="button" onclick="deleteSelected('dsrt')"
+                    class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-bold transition-all shadow-sm whitespace-nowrap">
+                    <i class="fa-solid fa-trash-can mr-1.5"></i>Hapus Terpilih
+                </button>
+                <button type="button" onclick="deleteAll('dsrt')"
+                    class="bg-red-800 hover:bg-red-900 text-white px-3 py-1.5 rounded-md text-xs font-bold transition-all shadow-sm whitespace-nowrap">
+                    <i class="fa-solid fa-dumpster mr-1.5"></i>Reset
+                </button>
+            </div>
+            @endif
 
             <div class="glass p-6 rounded-md overflow-x-auto">
                 <table id="dt-dsrt" class="display nowrap w-full" style="width:100%">

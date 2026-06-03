@@ -655,7 +655,7 @@
         var dtConfigs = {
             responsive:false, scrollX:false, autoWidth:false, searchDelay:350,
             language: {
-                search:'', searchPlaceholder:'Cari data...', lengthMenu:'_MENU_ entries',
+                search:'', searchPlaceholder:'Cari data...', lengthMenu:'_MENU_ baris',
                 processing:processingHtml,
                 paginate:{ previous:'<i class="fa-solid fa-chevron-left"></i>', next:'<i class="fa-solid fa-chevron-right"></i>' }
             },
@@ -680,10 +680,18 @@
                 processing:true, serverSide:false, deferRender:true,
                 ajax: serverEndpoints[section],
                 order: [],          // Tidak ada initial sort — index kolom berbeda per role
-                columns: columnsFor(section)
+                columns: columnsFor(section),
+                initComplete: function() {
+                    // Inject tombol Hapus/Reset ke toolbar length DataTables
+                    var $actions = $('#dt-actions-' + section);
+                    if ($actions.length) {
+                        $('#dt-' + section + '_length')
+                            .addClass('flex items-center gap-2 flex-wrap')
+                            .append($actions.removeClass('hidden').css('display','inline-flex'));
+                    }
+                }
             }));
         }
-
         withPetugasOptions(); // pre-fetch
 
         var hash          = window.location.hash.substring(1);
