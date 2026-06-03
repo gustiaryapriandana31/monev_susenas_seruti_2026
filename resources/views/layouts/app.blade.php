@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Monev SE2026 - Dashboard</title>
+    <title>Monev Susenas Seruti 2026 - Dashboard</title>
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -255,7 +255,7 @@
                             <i class="fa-solid fa-chart-line text-white text-2xl"></i>
                         </div>
                         <div>
-                            <h1 class="text-white font-bold text-xl tracking-tight leading-tight">Monev SE</h1>
+                            <h1 class="text-white font-bold text-sm tracking-tight leading-tight">Monev Susenas Seruti 2026</h1>
                             <p class="text-bps-yellow text-[10px] font-semibold uppercase tracking-widest">Ogan Ilir</p>
                         </div>
                     </div>

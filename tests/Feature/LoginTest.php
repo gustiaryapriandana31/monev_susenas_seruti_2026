@@ -29,7 +29,7 @@ class LoginTest extends TestCase
         $response = $this->get('/login');
 
         $response->assertStatus(200)
-            ->assertSee('Monev Susenas Seruti')
+            ->assertSee('Monev Susenas Seruti 2026')
             ->assertSee('Username')
             ->assertSee('Password');
     }

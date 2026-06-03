@@ -112,7 +112,7 @@
                 <div class="w-16 h-16 bg-gradient-to-tr from-bps-orange to-bps-yellow rounded-2xl flex items-center justify-center shadow-lg shadow-bps-orange/20 mb-4 animate-pulse">
                     <i class="fa-solid fa-chart-line text-white text-3xl"></i>
                 </div>
-                <h1 class="text-2xl font-bold tracking-tight">Monev Susenas Seruti</h1>
+                <h1 class="text-2xl font-bold tracking-tight">Monev Susenas Seruti 2026</h1>
                 <p class="text-bps-yellow text-xs font-semibold uppercase tracking-widest mt-1">BPS Ogan Ilir</p>
                 <div class="w-12 h-1 bg-gradient-to-r from-bps-orange to-bps-yellow rounded-full mt-4"></div>
             </div>
