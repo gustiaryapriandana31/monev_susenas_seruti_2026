@@ -155,100 +155,6 @@
             </div>
         </div>
 
-        <!-- Workload Sebaran Charts (3 & 4) -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Workload DSSLS -->
-            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <div>
-                        <h3 class="text-lg font-bold text-bps-dark">Sebaran Penugasan DSSLS</h3>
-                        <p class="text-gray-500 text-xs">Jumlah SLS yang dibebankan per petugas</p>
-                    </div>
-                    <div>
-                        <select id="select-workload-dssls" class="rounded-lg border border-gray-200 p-2 text-xs focus:ring-bps-orange focus:outline-none">
-                            <option value="ppl">Pencacah (PPL)</option>
-                            <option value="pml">Pengawas (PML)</option>
-                            <option value="entry">Petugas Entry</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
-                    <canvas id="chart-workload-dssls"></canvas>
-                </div>
-            </div>
-
-            <!-- Workload DSRT -->
-            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <div>
-                        <h3 class="text-lg font-bold text-bps-dark">Sebaran Penugasan DSRT</h3>
-                        <p class="text-gray-500 text-xs">Jumlah DSRT yang dibebankan per petugas</p>
-                    </div>
-                    <div>
-                        <select id="select-workload-dsrt" class="rounded-lg border border-gray-200 p-2 text-xs focus:ring-bps-orange focus:outline-none">
-                            <option value="ppl">Pencacah (PPL)</option>
-                            <option value="pml">Pengawas (PML)</option>
-                            <option value="susenas">Petugas Susenas</option>
-                            <option value="seruti">Petugas Seruti</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
-                    <canvas id="chart-workload-dsrt"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- R203 Status splits (5) -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- R203 KOR -->
-            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
-                <div class="mb-4">
-                    <h3 class="text-lg font-bold text-bps-dark">Persentase Status R203 KOR</h3>
-                    <p class="text-gray-500 text-xs">Distribusi status hasil pencacahan KOR</p>
-                </div>
-                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
-                    <canvas id="chart-r203-kor"></canvas>
-                </div>
-            </div>
-
-            <!-- R203 KP -->
-            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
-                <div class="mb-4">
-                    <h3 class="text-lg font-bold text-bps-dark">Persentase Status R203 KP</h3>
-                    <p class="text-gray-500 text-xs">Distribusi status hasil pencacahan KP</p>
-                </div>
-                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
-                    <canvas id="chart-r203-kp"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Catatan status splits (6) -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Catatan KOR -->
-            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
-                <div class="mb-4">
-                    <h3 class="text-lg font-bold text-bps-dark">Catatan KOR (Ya vs Tidak)</h3>
-                    <p class="text-gray-500 text-xs">Persentase dokumen KOR yang memiliki catatan</p>
-                </div>
-                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
-                    <canvas id="chart-catatan-kor"></canvas>
-                </div>
-            </div>
-
-            <!-- Catatan KP -->
-            <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
-                <div class="mb-4">
-                    <h3 class="text-lg font-bold text-bps-dark">Catatan KP (Ya vs Tidak)</h3>
-                    <p class="text-gray-500 text-xs">Persentase dokumen KP yang memiliki catatan</p>
-                </div>
-                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
-                    <canvas id="chart-catatan-kp"></canvas>
-                </div>
-            </div>
-        </div>
-
     </div>
 
         <!-- =========================================================
@@ -541,32 +447,78 @@
                             </form>
                         @endif
 
-                        {{-- Export IPDS: superadmin & adminipds --}}
-                        @if ($isSuperAdmin || $isAdminIpds)
-                            <a href="{{ route('data_dsrt.export_ipds') }}"
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-xs font-bold transition-all shadow-sm">
-                                <i class="fa-solid fa-file-excel mr-2"></i>Export IPDS
-                            </a>
-                        @endif
+                        {{-- Export Data Dropdown: superadmin, adminipds, adminsosial --}}
+                        @if ($isSuperAdmin || $isAdminIpds || $isAdminSosial)
+                            <div class="relative inline-block text-left" id="dsrt-export-wrapper">
+                                <button type="button" id="dsrt-export-btn" onclick="toggleDsrtExportDropdown(event)"
+                                    class="inline-flex items-center gap-2 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md focus:outline-none"
+                                    style="background: linear-gradient(135deg, #0d9488, #0f766e); box-shadow: 0 4px 14px rgba(13,148,136,0.35);">
+                                    <i class="fa-solid fa-file-export"></i>
+                                    Export Data
+                                    <i class="fa-solid fa-chevron-down text-[10px] ml-0.5 transition-transform duration-200" id="dsrt-export-chevron"></i>
+                                </button>
 
-                        {{-- Export Sosial: superadmin & adminsosial --}}
-                        @if ($isSuperAdmin || $isAdminSosial)
-                            <a href="{{ route('data_dsrt.export_sosial') }}"
-                                class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md text-xs font-bold transition-all shadow-sm">
-                                <i class="fa-solid fa-file-excel mr-2"></i>Export Sosial Penerimaan oleh Kab
-                            </a>
-                            <a href="{{ route('data_dsrt.export_sosial_kab') }}"
-                                class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md text-xs font-bold transition-all shadow-sm">
-                                <i class="fa-solid fa-file-excel mr-2"></i>Export Sosial Pengiriman ke Kab
-                            </a>
-                            <a href="{{ route('data_dsrt.export_lapangan') }}"
-                                class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md text-xs font-bold transition-all shadow-sm">
-                                <i class="fa-solid fa-file-excel mr-2"></i>Export Lapangan
-                            </a>
-                            <a href="{{ route('data_dsrt.export_pemeriksaan') }}"
-                                class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md text-xs font-bold transition-all shadow-sm">
-                                <i class="fa-solid fa-file-excel mr-2"></i>Export Pemeriksaan
-                            </a>
+                                {{-- Dropdown Menu: fixed positioning agar lepas dari stacking context backdrop-filter --}}
+                                <div id="dsrt-export-menu"
+                                    class="hidden rounded-2xl bg-white border border-stone-100 overflow-hidden"
+                                    style="position: fixed; min-width: 240px; z-index: 99999; box-shadow: 0 12px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.07);">
+
+                                    {{-- Header kecil --}}
+                                    <div class="px-4 py-2.5 bg-gradient-to-r from-stone-50 to-stone-100 border-b border-stone-100">
+                                        <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Pilih Format Export</span>
+                                    </div>
+
+                                    <div class="py-1.5 px-1.5 flex flex-col gap-0.5">
+                                        {{-- Export IPDS: superadmin & adminipds --}}
+                                        @if ($isSuperAdmin || $isAdminIpds)
+                                            <a href="{{ route('data_dsrt.export_ipds') }}"
+                                                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-blue-700 hover:bg-blue-50 transition-all group">
+                                                <span class="w-7 h-7 rounded-lg bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center flex-shrink-0 transition-colors">
+                                                    <i class="fa-solid fa-file-excel text-blue-600 text-[11px]"></i>
+                                                </span>
+                                                Export IPDS
+                                            </a>
+                                        @endif
+
+                                        {{-- Divider antara IPDS & Sosial jika superadmin --}}
+                                        @if ($isSuperAdmin)
+                                            <div class="border-t border-stone-100 my-1 mx-1"></div>
+                                        @endif
+
+                                        {{-- Export Sosial: superadmin & adminsosial --}}
+                                        @if ($isSuperAdmin || $isAdminSosial)
+                                            <a href="{{ route('data_dsrt.export_sosial') }}"
+                                                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-teal-700 hover:bg-teal-50 transition-all group">
+                                                <span class="w-7 h-7 rounded-lg bg-teal-100 group-hover:bg-teal-200 flex items-center justify-center flex-shrink-0 transition-colors">
+                                                    <i class="fa-solid fa-file-excel text-teal-600 text-[11px]"></i>
+                                                </span>
+                                                Export Sosial Penerimaan oleh Kab
+                                            </a>
+                                            <a href="{{ route('data_dsrt.export_sosial_kab') }}"
+                                                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-teal-700 hover:bg-teal-50 transition-all group">
+                                                <span class="w-7 h-7 rounded-lg bg-teal-100 group-hover:bg-teal-200 flex items-center justify-center flex-shrink-0 transition-colors">
+                                                    <i class="fa-solid fa-file-excel text-teal-600 text-[11px]"></i>
+                                                </span>
+                                                Export Sosial Pengiriman ke Kab
+                                            </a>
+                                            <a href="{{ route('data_dsrt.export_lapangan') }}"
+                                                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-teal-700 hover:bg-teal-50 transition-all group">
+                                                <span class="w-7 h-7 rounded-lg bg-teal-100 group-hover:bg-teal-200 flex items-center justify-center flex-shrink-0 transition-colors">
+                                                    <i class="fa-solid fa-map-location-dot text-teal-600 text-[11px]"></i>
+                                                </span>
+                                                Export Lapangan
+                                            </a>
+                                            <a href="{{ route('data_dsrt.export_pemeriksaan') }}"
+                                                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-teal-700 hover:bg-teal-50 transition-all group">
+                                                <span class="w-7 h-7 rounded-lg bg-teal-100 group-hover:bg-teal-200 flex items-center justify-center flex-shrink-0 transition-colors">
+                                                    <i class="fa-solid fa-clipboard-check text-teal-600 text-[11px]"></i>
+                                                </span>
+                                                Export Pemeriksaan
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         @endif
                     </div>
                 </div>

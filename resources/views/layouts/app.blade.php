@@ -431,33 +431,38 @@
             }
         });
 
-        // Flash Messages
+        // Flash Messages — toast kanan atas
+        const _Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
         @if(session('success'))
-            Swal.fire({
+            _Toast.fire({
                 icon: 'success',
-                title: 'Berhasil!',
-                text: "{{ session('success') }}",
-                confirmButtonColor: '#ff4c10',
-                background: 'rgba(255,255,255,0.9)',
-                backdrop: 'rgba(0,0,0,0.4)'
+                title: "{{ session('success') }}"
             });
         @endif
 
         @if(session('error'))
-            Swal.fire({
+            _Toast.fire({
                 icon: 'error',
-                title: 'Gagal!',
-                text: "{{ session('error') }}",
-                confirmButtonColor: '#ff4c10'
+                title: "{{ session('error') }}"
             });
         @endif
-        
+
         @if($errors->any())
-            Swal.fire({
+            _Toast.fire({
                 icon: 'error',
                 title: 'Validasi Error!',
-                html: '<ul class="text-left">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>',
-                confirmButtonColor: '#ff4c10'
+                html: '<ul class="text-left text-xs">@foreach($errors->all() as $error)<li>• {{ $error }}</li>@endforeach</ul>'
             });
         @endif
 

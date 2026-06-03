@@ -575,56 +575,6 @@
         });
     }
 
-    // Workload Draw Helpers
-    function drawWorkloadDssls() {
-        if (!dashboardData) return;
-        var role = $('#select-workload-dssls').val();
-        var dataList = dashboardData.dssls.sebaran[role] || [];
-
-        // Shorten long names
-        var labels = dataList.map(function(item) {
-            var nameParts = item.nama.split(' ');
-            return nameParts.slice(0, 2).join(' ');
-        });
-        var values = dataList.map(function(item) { return item.total; });
-
-        initChart('chart-workload-dssls', 'bar', labels, [{
-            label: 'Beban SLS',
-            data: values,
-            backgroundColor: '#FF8C00',
-            borderRadius: 4
-        }], {
-            scales: {
-                y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#e2e8f0' } },
-                x: { grid: { display: false }, ticks: { font: { size: 9 } } }
-            }
-        });
-    }
-
-    function drawWorkloadDsrt() {
-        if (!dashboardData) return;
-        var role = $('#select-workload-dsrt').val();
-        var dataList = dashboardData.dsrt.sebaran[role] || [];
-
-        var labels = dataList.map(function(item) {
-            var nameParts = item.nama.split(' ');
-            return nameParts.slice(0, 2).join(' ');
-        });
-        var values = dataList.map(function(item) { return item.total; });
-
-        initChart('chart-workload-dsrt', 'bar', labels, [{
-            label: 'Beban DSRT',
-            data: values,
-            backgroundColor: '#3b82f6',
-            borderRadius: 4
-        }], {
-            scales: {
-                y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#e2e8f0' } },
-                x: { grid: { display: false }, ticks: { font: { size: 9 } } }
-            }
-        });
-    }
-
     function loadDashboardSummary(kecamatan = '', desa = '') {
         var url = '{{ route("dashboard.summary") }}';
         $.getJSON(url, { kecamatan: kecamatan, desa: desa }).done(function(res) {
@@ -686,54 +636,11 @@
                 }
             );
 
-            // 3. DSSLS Workload Chart
-            drawWorkloadDssls();
-
-            // 4. DSRT Workload Chart
-            drawWorkloadDsrt();
-
-            // 5. R203 KOR status pie chart
-            var korLabels = res.dsrt.r203_kor.map(function(item) { return item.label; });
-            var korValues = res.dsrt.r203_kor.map(function(item) { return item.total; });
-            initChart('chart-r203-kor', 'pie', korLabels, [{
-                data: korValues,
-                backgroundColor: ['#22c55e', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#94a3b8']
-            }]);
-
-            // 5. R203 KP status pie chart
-            var kpLabels = res.dsrt.r203_kp.map(function(item) { return item.label; });
-            var kpValues = res.dsrt.r203_kp.map(function(item) { return item.total; });
-            initChart('chart-r203-kp', 'pie', kpLabels, [{
-                data: kpValues,
-                backgroundColor: ['#22c55e', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#94a3b8']
-            }]);
-
-            // 6. Catatan KOR Ya vs Tidak
-            var catKorLabels = res.dsrt.catatan_kor.map(function(item) { return item.label; });
-            var catKorValues = res.dsrt.catatan_kor.map(function(item) { return item.total; });
-            initChart('chart-catatan-kor', 'doughnut', catKorLabels, [{
-                data: catKorValues,
-                backgroundColor: ['#e2e8f0', '#ef4444']
-            }]);
-
-            // 6. Catatan KP Ya vs Tidak
-            var catKpLabels = res.dsrt.catatan_kp.map(function(item) { return item.label; });
-            var catKpValues = res.dsrt.catatan_kp.map(function(item) { return item.total; });
-            initChart('chart-catatan-kp', 'doughnut', catKpLabels, [{
-                data: catKpValues,
-                backgroundColor: ['#e2e8f0', '#ef4444']
-            }]);
 
         }).fail(function() {
             console.error("Gagal memuat data dashboard.");
         });
     }
-
-    // Set up change listeners for dynamic toggles
-    $(document).ready(function() {
-        $('#select-workload-dssls').on('change', drawWorkloadDssls);
-        $('#select-workload-dsrt').on('change', drawWorkloadDsrt);
-    });
 
     // ── DataTables Init ──────────────────────────────────────────────────────────
 
@@ -941,6 +848,55 @@
                 if (row){ var rd=row.data(); rd[field]=Boolean(isChecked); rd['waktu_'+field]=timestamp; row.data(rd); }
             }).fail(function(){ Swal.fire('Error','Terjadi kesalahan sistem','error'); }).always(function(){ $cb.parent().css('opacity','1'); });
         });
+    });
+
+    // ── DSRT Export Dropdown ──
+    // Pindahkan menu ke <body> agar lepas dari SEMUA stacking context (glass + DataTables)
+    (function() {
+        var $menu = $('#dsrt-export-menu');
+        if ($menu.length) {
+            $('body').append($menu.detach());
+        }
+    })();
+
+    function positionDsrtMenu() {
+        var btn  = document.getElementById('dsrt-export-btn');
+        if (!btn) return;
+        var rect = btn.getBoundingClientRect();
+        var menuW = 240;
+        var left  = rect.right - menuW;
+        if (left < 8) left = 8;
+        $('#dsrt-export-menu').css({
+            top:  (rect.bottom + 6) + 'px',
+            left: left + 'px'
+        });
+    }
+
+    window.toggleDsrtExportDropdown = function(event) {
+        event.stopPropagation();
+        var $menu    = $('#dsrt-export-menu');
+        var $chevron = $('#dsrt-export-chevron');
+        if ($menu.hasClass('hidden')) {
+            positionDsrtMenu();
+            $menu.removeClass('hidden');
+            $chevron.addClass('rotate-180');
+        } else {
+            $menu.addClass('hidden');
+            $chevron.removeClass('rotate-180');
+        }
+    };
+
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('#dsrt-export-wrapper, #dsrt-export-menu').length) {
+            $('#dsrt-export-menu').addClass('hidden');
+            $('#dsrt-export-chevron').removeClass('rotate-180');
+        }
+    });
+
+    $(window).on('scroll resize', function() {
+        if (!$('#dsrt-export-menu').hasClass('hidden')) {
+            positionDsrtMenu();
+        }
     });
 </script>
 @endpush

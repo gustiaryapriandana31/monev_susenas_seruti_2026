@@ -203,29 +203,32 @@
             `;
         });
 
-        // Show SweetAlert alerts if they exist in the session or errors bag
+        // Notifikasi — toast kanan atas
+        const _LoginToast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 4500,
+            timerProgressBar: true,
+            background: '#1e293b',
+            color: '#fff',
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+
         @if($errors->any())
-            Swal.fire({
+            _LoginToast.fire({
                 icon: 'error',
-                title: 'Login Gagal',
-                text: '{{ $errors->first() }}',
-                confirmButtonColor: '#FF8C00',
-                background: '#1e293b',
-                color: '#fff',
-                confirmButtonText: 'Coba Lagi'
+                title: '{{ $errors->first() }}'
             });
         @endif
 
         @if(session('success'))
-            Swal.fire({
+            _LoginToast.fire({
                 icon: 'success',
-                title: 'Berhasil!',
-                text: '{{ session('success') }}',
-                confirmButtonColor: '#FF8C00',
-                background: '#1e293b',
-                color: '#fff',
-                timer: 3000,
-                timerProgressBar: true
+                title: '{{ session('success') }}'
             });
         @endif
     </script>
