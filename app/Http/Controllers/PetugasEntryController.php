@@ -46,6 +46,42 @@ class PetugasEntryController extends Controller
         return back()->with('success', 'Data Petugas Entry Berhasil Diimport!');
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'kode_petugas' => 'required|string|unique:petugas_entries,kode_petugas',
+            'nama_petugas' => 'required|string',
+            'email'        => 'required|email|unique:petugas_entries,email',
+            'no_hp'        => 'required|string',
+        ], [
+            'kode_petugas.required' => 'Kode petugas wajib diisi.',
+            'kode_petugas.unique'   => 'Kode petugas sudah digunakan.',
+            'nama_petugas.required' => 'Nama petugas wajib diisi.',
+            'email.required'        => 'Email wajib diisi.',
+            'email.email'           => 'Format email tidak valid.',
+            'email.unique'          => 'Email sudah digunakan.',
+            'no_hp.required'        => 'Nomor HP wajib diisi.',
+        ]);
+
+        PetugasEntry::create([
+            'kode_petugas' => $request->kode_petugas,
+            'provinsi'     => 16,
+            'kabupaten'    => 10,
+            'nama_petugas' => $request->nama_petugas,
+            'email'        => $request->email,
+            'no_hp'        => $request->no_hp,
+            'status'       => 'Mitra',
+        ]);
+
+        Cache::forget('dashboard_petugas_options');
+        Cache::forget('count_petugas_entry');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Petugas Entry berhasil ditambahkan!'
+        ]);
+    }
+
     public function deleteBulk(Request $request)
     {
         $request->validate([

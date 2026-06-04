@@ -155,6 +155,46 @@
             </div>
         </div>
 
+        <!-- Rekap Petugas Entry Section -->
+        <div class="glass p-6 rounded-2xl shadow-sm flex flex-col space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-bps-dark">Rekap Penugasan Petugas Entry</h3>
+                    <p class="text-gray-500 text-xs">Jumlah beban tugas entry data per petugas</p>
+                </div>
+                {{-- Search bar --}}
+                <div class="relative w-full md:w-64">
+                    <input type="text" id="search-rekap" placeholder="Cari nama atau kode petugas..." class="w-full rounded-lg border border-gray-200 p-2.5 pl-9 text-xs focus:ring-bps-orange focus:outline-none">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-[11px] text-gray-400"></i>
+                </div>
+            </div>
+            <div class="overflow-x-auto w-full">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50/70 border-b border-gray-200/80">
+                            <th class="py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center w-12">No</th>
+                            <th class="py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Nama Petugas</th>
+                            <th class="py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">Kode Petugas</th>
+                            <th class="py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">ENTRY PEMUTAKHIRAN</th>
+                            <th class="py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">ENTRY SUSENAS</th>
+                            <th class="py-3 px-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider text-center">ENTRY SERUTI</th>
+                            <th class="py-3 px-4 text-[10px] font-bold text-bps-orange uppercase tracking-wider text-center font-bold">TOTAL TUGAS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-rekap" class="divide-y divide-gray-100">
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-xs text-gray-400 font-medium">
+                                <div class="flex items-center justify-center gap-2">
+                                    <div class="w-4 h-4 border-2 border-bps-orange border-t-transparent rounded-full animate-spin"></div>
+                                    Memuat rekap petugas...
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
         <!-- =========================================================
@@ -169,6 +209,10 @@
                     </div>
                     @if ($isSuperAdmin || $isAdminSosial)
                         <div class="flex flex-wrap items-center gap-3">
+                            <button type="button" onclick="openAddLapanganModal()"
+                                class="bg-bps-orange hover:bg-seorange-600 text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-2">
+                                <i class="fa-solid fa-user-plus"></i> Tambah Petugas
+                            </button>
                             <form action="{{ route('petugas_lapangan.import') }}" method="POST"
                                 enctype="multipart/form-data"
                                 class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 shadow-inner">
@@ -248,6 +292,10 @@
                     </div>
                     @if ($isSuperAdmin || $isAdminIpds)
                         <div class="flex flex-wrap items-center gap-3">
+                            <button type="button" onclick="openAddEntryModal()"
+                                class="bg-bps-orange hover:bg-seorange-600 text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-2">
+                                <i class="fa-solid fa-user-plus"></i> Tambah Petugas
+                            </button>
                             <form action="{{ route('petugas_entry.import') }}" method="POST" enctype="multipart/form-data"
                                 class="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200 shadow-inner">
                                 @csrf
@@ -604,6 +652,165 @@
     <!-- =========================================================
         Modals
     ========================================================== -->
+
+    {{-- Modal Tambah Petugas Lapangan --}}
+    @if ($isSuperAdmin || $isAdminSosial)
+        <div id="modal-add-lapangan" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('modal-add-lapangan')"></div>
+            <div class="relative bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl scale-in border border-gray-100">
+                <div class="px-8 py-5 bg-gradient-to-r from-bps-orange/5 to-bps-orange/10 border-b border-gray-100 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-base font-extrabold text-bps-dark">Tambah Petugas Lapangan</h3>
+                        <p class="text-gray-400 text-[10px] mt-0.5 uppercase tracking-widest font-bold">Input Informasi Petugas Baru</p>
+                    </div>
+                    <button type="button" onclick="closeModal('modal-add-lapangan')"
+                        class="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all border border-gray-100 shadow-sm">
+                        <i class="fa-solid fa-times text-sm"></i>
+                    </button>
+                </div>
+                <form id="form-add-lapangan" action="{{ route('petugas_lapangan.store') }}" method="POST" class="p-8 space-y-5">
+                    @csrf
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-gray-500 uppercase mb-1.5 tracking-wider">Kode Petugas</label>
+                            <div class="relative">
+                                <input type="text" name="kode_petugas" required placeholder="Contoh: 16109999"
+                                    class="block w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-4 py-2.5 text-xs font-semibold text-bps-dark focus:bg-white focus:ring-4 focus:ring-bps-orange/10 focus:border-bps-orange focus:outline-none transition-all duration-300 shadow-sm">
+                                <i class="fa-solid fa-id-card absolute left-3.5 top-3 text-gray-400 text-xs"></i>
+                            </div>
+                            <span id="error-kode_petugas" class="text-red-500 text-[10px] font-semibold mt-1 block error-msg hidden"></span>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-gray-500 uppercase mb-1.5 tracking-wider">Nama Petugas</label>
+                            <div class="relative">
+                                <input type="text" name="nama_petugas" required placeholder="Nama lengkap petugas..."
+                                    class="block w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-4 py-2.5 text-xs font-semibold text-bps-dark focus:bg-white focus:ring-4 focus:ring-bps-orange/10 focus:border-bps-orange focus:outline-none transition-all duration-300 shadow-sm">
+                                <i class="fa-solid fa-user absolute left-3.5 top-3 text-gray-400 text-xs"></i>
+                            </div>
+                            <span id="error-nama_petugas" class="text-red-500 text-[10px] font-semibold mt-1 block error-msg hidden"></span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-gray-500 uppercase mb-1.5 tracking-wider">No HP</label>
+                            <div class="relative">
+                                <input type="text" name="no_hp" required placeholder="Contoh: 0853..."
+                                    class="block w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-4 py-2.5 text-xs font-semibold text-bps-dark focus:bg-white focus:ring-4 focus:ring-bps-orange/10 focus:border-bps-orange focus:outline-none transition-all duration-300 shadow-sm">
+                                <i class="fa-solid fa-phone absolute left-3.5 top-3 text-gray-400 text-xs"></i>
+                            </div>
+                            <span id="error-no_hp" class="text-red-500 text-[10px] font-semibold mt-1 block error-msg hidden"></span>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-gray-500 uppercase mb-1.5 tracking-wider">Jabatan</label>
+                            <div class="relative">
+                                <select name="jabatan" required
+                                    class="block w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-10 py-2.5 text-xs font-semibold text-bps-dark focus:bg-white focus:ring-4 focus:ring-bps-orange/10 focus:border-bps-orange focus:outline-none transition-all duration-300 shadow-sm appearance-none cursor-pointer">
+                                    <option value="">-- Pilih Jabatan --</option>
+                                    <option value="Pencacah (PPL)">Pencacah (PPL)</option>
+                                    <option value="Pengawas (PML)">Pengawas (PML)</option>
+                                </select>
+                                <i class="fa-solid fa-briefcase absolute left-3.5 top-3 text-gray-400 text-xs"></i>
+                                <i class="fa-solid fa-chevron-down absolute right-3.5 top-3 text-gray-400 text-[10px] pointer-events-none"></i>
+                            </div>
+                            <span id="error-jabatan" class="text-red-500 text-[10px] font-semibold mt-1 block error-msg hidden"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-extrabold text-gray-500 uppercase mb-1.5 tracking-wider">Status</label>
+                        <div class="relative">
+                            <select name="status" required
+                                class="block w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-10 py-2.5 text-xs font-semibold text-bps-dark focus:bg-white focus:ring-4 focus:ring-bps-orange/10 focus:border-bps-orange focus:outline-none transition-all duration-300 shadow-sm appearance-none cursor-pointer">
+                                <option value="">-- Pilih Status --</option>
+                                <option value="Mitra">Mitra</option>
+                                <option value="Staf Kabupaten">Staf Kabupaten</option>
+                            </select>
+                            <i class="fa-solid fa-user-shield absolute left-3.5 top-3 text-gray-400 text-xs"></i>
+                            <i class="fa-solid fa-chevron-down absolute right-3.5 top-3 text-gray-400 text-[10px] pointer-events-none"></i>
+                        </div>
+                        <span id="error-status" class="text-red-500 text-[10px] font-semibold mt-1 block error-msg hidden"></span>
+                    </div>
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-100 bg-gray-50/50 px-8 py-4 -mx-8 -mb-8">
+                        <button type="button" onclick="closeModal('modal-add-lapangan')"
+                            class="px-5 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold text-xs hover:bg-gray-100 hover:text-gray-800 active:scale-95 transition-all shadow-sm">Batal</button>
+                        <button type="submit"
+                            class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-bps-orange to-orange-500 text-white font-extrabold text-xs shadow-md shadow-bps-orange/20 hover:shadow-lg hover:shadow-bps-orange/30 hover:brightness-105 active:scale-95 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-check text-sm"></i> Simpan Petugas
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    {{-- Modal Tambah Petugas Entry --}}
+    @if ($isSuperAdmin || $isAdminIpds)
+        <div id="modal-add-entry" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('modal-add-entry')"></div>
+            <div class="relative bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl scale-in border border-gray-100">
+                <div class="px-8 py-5 bg-gradient-to-r from-bps-orange/5 to-bps-orange/10 border-b border-gray-100 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-base font-extrabold text-bps-dark">Tambah Petugas Entry Data</h3>
+                        <p class="text-gray-400 text-[10px] mt-0.5 uppercase tracking-widest font-bold">Input Informasi Petugas Baru</p>
+                    </div>
+                    <button type="button" onclick="closeModal('modal-add-entry')"
+                        class="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all border border-gray-100 shadow-sm">
+                        <i class="fa-solid fa-times text-sm"></i>
+                    </button>
+                </div>
+                <form id="form-add-entry" action="{{ route('petugas_entry.store') }}" method="POST" class="p-8 space-y-5">
+                    @csrf
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-gray-500 uppercase mb-1.5 tracking-wider">Kode Petugas</label>
+                            <div class="relative">
+                                <input type="text" name="kode_petugas" required placeholder="Contoh: 16109999"
+                                    class="block w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-4 py-2.5 text-xs font-semibold text-bps-dark focus:bg-white focus:ring-4 focus:ring-bps-orange/10 focus:border-bps-orange focus:outline-none transition-all duration-300 shadow-sm">
+                                <i class="fa-solid fa-id-card absolute left-3.5 top-3 text-gray-400 text-xs"></i>
+                            </div>
+                            <span id="error-kode_petugas" class="text-red-500 text-[10px] font-semibold mt-1 block error-msg hidden"></span>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-gray-500 uppercase mb-1.5 tracking-wider">Nama Petugas</label>
+                            <div class="relative">
+                                <input type="text" name="nama_petugas" required placeholder="Nama lengkap petugas..."
+                                    class="block w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-4 py-2.5 text-xs font-semibold text-bps-dark focus:bg-white focus:ring-4 focus:ring-bps-orange/10 focus:border-bps-orange focus:outline-none transition-all duration-300 shadow-sm">
+                                <i class="fa-solid fa-user absolute left-3.5 top-3 text-gray-400 text-xs"></i>
+                            </div>
+                            <span id="error-nama_petugas" class="text-red-500 text-[10px] font-semibold mt-1 block error-msg hidden"></span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-gray-500 uppercase mb-1.5 tracking-wider">Email</label>
+                            <div class="relative">
+                                <input type="email" name="email" required placeholder="Contoh: nama@bps.go.id"
+                                    class="block w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-4 py-2.5 text-xs font-semibold text-bps-dark focus:bg-white focus:ring-4 focus:ring-bps-orange/10 focus:border-bps-orange focus:outline-none transition-all duration-300 shadow-sm">
+                                <i class="fa-solid fa-envelope absolute left-3.5 top-3 text-gray-400 text-xs"></i>
+                            </div>
+                            <span id="error-email" class="text-red-500 text-[10px] font-semibold mt-1 block error-msg hidden"></span>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-extrabold text-gray-500 uppercase mb-1.5 tracking-wider">No HP</label>
+                            <div class="relative">
+                                <input type="text" name="no_hp" required placeholder="Contoh: 0853..."
+                                    class="block w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-10 pr-4 py-2.5 text-xs font-semibold text-bps-dark focus:bg-white focus:ring-4 focus:ring-bps-orange/10 focus:border-bps-orange focus:outline-none transition-all duration-300 shadow-sm">
+                                <i class="fa-solid fa-phone absolute left-3.5 top-3 text-gray-400 text-xs"></i>
+                            </div>
+                            <span id="error-no_hp" class="text-red-500 text-[10px] font-semibold mt-1 block error-msg hidden"></span>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-100 bg-gray-50/50 px-8 py-4 -mx-8 -mb-8">
+                        <button type="button" onclick="closeModal('modal-add-entry')"
+                            class="px-5 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 font-bold text-xs hover:bg-gray-100 hover:text-gray-800 active:scale-95 transition-all shadow-sm">Batal</button>
+                        <button type="submit"
+                            class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-bps-orange to-orange-500 text-white font-extrabold text-xs shadow-md shadow-bps-orange/20 hover:shadow-lg hover:shadow-bps-orange/30 hover:brightness-105 active:scale-95 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-check text-sm"></i> Simpan Petugas
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 
     {{-- Edit DSSLS Modal: disembunyikan untuk adminipds --}}
     @if (!$isAdminIpds)

@@ -180,6 +180,22 @@
 
     function closeModal(id) { $('#' + id).fadeOut(200); }
 
+    window.openAddLapanganModal = function() {
+        var $modal = $('#modal-add-lapangan');
+        $modal.find('form')[0].reset();
+        $modal.find('.error-msg').text('').addClass('hidden');
+        $modal.find('input, select').removeClass('border-red-500');
+        $modal.removeClass('hidden').css('display','flex').hide().fadeIn(200);
+    }
+
+    window.openAddEntryModal = function() {
+        var $modal = $('#modal-add-entry');
+        $modal.find('form')[0].reset();
+        $modal.find('.error-msg').text('').addClass('hidden');
+        $modal.find('input, select').removeClass('border-red-500');
+        $modal.removeClass('hidden').css('display','flex').hide().fadeIn(200);
+    }
+
     function populateModalSelects(modalId, fields, values) {
         withPetugasOptions(function(options) {
             fields.forEach(function(f) {
@@ -571,6 +587,7 @@
             var $desaSelect = $('#filter-desa');
             $desaSelect.find('option:not(:first)').remove();
             $desaSelect.prop('disabled', true);
+            $('#search-rekap').val('');
             loadDashboardSummary('', '');
         });
     }
@@ -636,6 +653,30 @@
                 }
             );
 
+            // 2. Render Rekap Petugas Entry Table
+            var rekapHtml = '';
+            if (res.rekap_entry && res.rekap_entry.length > 0) {
+                res.rekap_entry.forEach(function(item, idx) {
+                    rekapHtml += '<tr class="rekap-row hover:bg-gray-50/50 transition-colors" data-nama="' + escapeHtml(item.nama.toLowerCase()) + '" data-kode="' + escapeHtml(item.kode.toLowerCase()) + '">';
+                    rekapHtml += '  <td class="py-3.5 px-4 text-xs font-semibold text-gray-600 text-center">' + (idx + 1) + '</td>';
+                    rekapHtml += '  <td class="py-3.5 px-4 text-xs font-bold text-gray-800">' + escapeHtml(item.nama) + '</td>';
+                    rekapHtml += '  <td class="py-3.5 px-4 text-xs font-semibold text-gray-600 text-center">' + escapeHtml(item.kode) + '</td>';
+                    rekapHtml += '  <td class="py-3.5 px-4 text-xs font-bold text-gray-700 text-center">' + item.pemutakhiran + '</td>';
+                    rekapHtml += '  <td class="py-3.5 px-4 text-xs font-bold text-gray-700 text-center">' + item.susenas + '</td>';
+                    rekapHtml += '  <td class="py-3.5 px-4 text-xs font-bold text-gray-700 text-center">' + item.seruti + '</td>';
+                    rekapHtml += '  <td class="py-3.5 px-4 text-xs font-black text-bps-orange text-center">' + item.total + '</td>';
+                    rekapHtml += '</tr>';
+                });
+            } else {
+                rekapHtml = '<tr><td colspan="7" class="py-8 text-center text-xs text-gray-400">Tidak ada data petugas entry</td></tr>';
+            }
+            $('#tbody-rekap').html(rekapHtml);
+
+            // Re-apply client-side search filter if any value exists
+            var searchVal = $('#search-rekap').val();
+            if (searchVal) {
+                $('#search-rekap').trigger('input');
+            }
 
         }).fail(function() {
             console.error("Gagal memuat data dashboard.");
@@ -686,8 +727,11 @@
                     var $actions = $('#dt-actions-' + section);
                     if ($actions.length) {
                         $('#dt-' + section + '_length')
-                            .addClass('flex items-center gap-2 flex-wrap')
-                            .append($actions.removeClass('hidden').css('display','inline-flex'));
+                            .addClass('flex items-center flex-wrap')
+                            .append($actions.removeClass('hidden').css({
+                                'display': 'inline-flex',
+                                'margin-left': '1.25rem'
+                            }));
                     }
                 }
             }));
@@ -855,6 +899,144 @@
                 $(timeLabelId).text(timestamp);
                 if (row){ var rd=row.data(); rd[field]=Boolean(isChecked); rd['waktu_'+field]=timestamp; row.data(rd); }
             }).fail(function(){ Swal.fire('Error','Terjadi kesalahan sistem','error'); }).always(function(){ $cb.parent().css('opacity','1'); });
+        });
+
+        // ── Search Rekap Petugas Entry ──
+        $(document).on('input', '#search-rekap', function() {
+            var val = $(this).val().toLowerCase().trim();
+            var visibleRows = 0;
+            var totalRows = 0;
+            
+            $('#tbody-rekap tr').each(function() {
+                var $row = $(this);
+                if ($row.hasClass('no-data-row')) {
+                    $row.remove();
+                    return;
+                }
+                totalRows++;
+                var nama = $row.data('nama') || '';
+                var kode = $row.data('kode') || '';
+                if (nama.indexOf(val) > -1 || kode.indexOf(val) > -1) {
+                    $row.show();
+                    visibleRows++;
+                } else {
+                    $row.hide();
+                }
+            });
+            
+            if (visibleRows === 0 && totalRows > 0) {
+                $('#tbody-rekap').append('<tr class="no-data-row"><td colspan="7" class="py-8 text-center text-xs text-gray-400">Tidak ada petugas yang cocok dengan pencarian</td></tr>');
+            }
+        });
+
+        // ── AJAX Submit for Add Petugas Lapangan ──
+        $('#form-add-lapangan').on('submit', function(e) {
+            e.preventDefault();
+            var $form = $(this);
+            var $modal = $('#modal-add-lapangan');
+            var $btnSubmit = $form.find('button[type="submit"]');
+            
+            // Reset errors
+            $form.find('.error-msg').text('').addClass('hidden');
+            $form.find('input, select').removeClass('border-red-500');
+            $btnSubmit.prop('disabled', true).css('opacity', '0.7');
+            
+            $.ajax({
+                url: $form.attr('action'),
+                type: 'POST',
+                data: $form.serialize(),
+                dataType: 'json',
+                success: function(res) {
+                    $btnSubmit.prop('disabled', false).css('opacity', '1');
+                    if (res.success) {
+                        $modal.fadeOut(200);
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: res.message || 'Petugas Lapangan berhasil ditambahkan!',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        petugasOptions = null;
+                        petugasOptionsRequest = null;
+                        reloadTable('lapangan');
+                    } else {
+                        Swal.fire('Error', res.message || 'Gagal menambahkan petugas', 'error');
+                    }
+                },
+                error: function(xhr) {
+                    $btnSubmit.prop('disabled', false).css('opacity', '1');
+                    if (xhr.status === 422) {
+                        var errors = xhr.responseJSON.errors;
+                        Object.keys(errors).forEach(function(key) {
+                            var errorMsg = errors[key][0];
+                            var $input = $form.find('[name="' + key + '"]');
+                            $input.addClass('border-red-500');
+                            var $errSpan = $form.find('#error-' + key);
+                            if ($errSpan.length) {
+                                $errSpan.text(errorMsg).removeClass('hidden');
+                            }
+                        });
+                    } else {
+                        Swal.fire('Error', xhr.responseJSON.message || 'Terjadi kesalahan sistem', 'error');
+                    }
+                }
+            });
+        });
+
+        // ── AJAX Submit for Add Petugas Entry ──
+        $('#form-add-entry').on('submit', function(e) {
+            e.preventDefault();
+            var $form = $(this);
+            var $modal = $('#modal-add-entry');
+            var $btnSubmit = $form.find('button[type="submit"]');
+            
+            // Reset errors
+            $form.find('.error-msg').text('').addClass('hidden');
+            $form.find('input, select').removeClass('border-red-500');
+            $btnSubmit.prop('disabled', true).css('opacity', '0.7');
+            
+            $.ajax({
+                url: $form.attr('action'),
+                type: 'POST',
+                data: $form.serialize(),
+                dataType: 'json',
+                success: function(res) {
+                    $btnSubmit.prop('disabled', false).css('opacity', '1');
+                    if (res.success) {
+                        $modal.fadeOut(200);
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil',
+                            text: res.message || 'Petugas Entry berhasil ditambahkan!',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        petugasOptions = null;
+                        petugasOptionsRequest = null;
+                        reloadTable('entry');
+                    } else {
+                        Swal.fire('Error', res.message || 'Gagal menambahkan petugas', 'error');
+                    }
+                },
+                error: function(xhr) {
+                    $btnSubmit.prop('disabled', false).css('opacity', '1');
+                    if (xhr.status === 422) {
+                        var errors = xhr.responseJSON.errors;
+                        Object.keys(errors).forEach(function(key) {
+                            var errorMsg = errors[key][0];
+                            var $input = $form.find('[name="' + key + '"]');
+                            $input.addClass('border-red-500');
+                            var $errSpan = $form.find('#error-' + key);
+                            if ($errSpan.length) {
+                                $errSpan.text(errorMsg).removeClass('hidden');
+                            }
+                        });
+                    } else {
+                        Swal.fire('Error', xhr.responseJSON.message || 'Terjadi kesalahan sistem', 'error');
+                    }
+                }
+            });
         });
     });
 

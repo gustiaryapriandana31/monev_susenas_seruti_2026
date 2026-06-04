@@ -74,8 +74,21 @@ class RbacTest extends TestCase
     public function test_adminipds_dssls_toggle_ceklis_permissions(): void
     {
         $dssls = DataDssls::create([
+            'provinsi' => 32,
+            'nama_provinsi' => 'JAWA BARAT',
+            'kabupaten' => 1,
+            'nama_kabupaten' => 'BOGOR',
+            'kecamatan' => 10,
+            'nama_kecamatan' => 'CIBINONG',
+            'desa_kelurahan' => 1,
+            'nama_desa_kelurahan' => 'CIBINONG',
+            'klasifikasi_desa(k/p)' => 'K',
+            'strata_konsentrasi_kesejahteraan' => '1',
             'kode_sls' => '32010100010001',
+            'kode_sub_sls' => 0,
             'nama_sls' => 'RT 01',
+            'nks' => 1234,
+            'perkiraan_jumlah_keluarga' => 10,
         ]);
 
         // Allowed to toggle ceklis_ipds
@@ -103,8 +116,21 @@ class RbacTest extends TestCase
     public function test_adminsosial_dssls_toggle_ceklis_permissions(): void
     {
         $dssls = DataDssls::create([
+            'provinsi' => 32,
+            'nama_provinsi' => 'JAWA BARAT',
+            'kabupaten' => 1,
+            'nama_kabupaten' => 'BOGOR',
+            'kecamatan' => 10,
+            'nama_kecamatan' => 'CIBINONG',
+            'desa_kelurahan' => 1,
+            'nama_desa_kelurahan' => 'CIBINONG',
+            'klasifikasi_desa(k/p)' => 'K',
+            'strata_konsentrasi_kesejahteraan' => '1',
             'kode_sls' => '32010100010001',
+            'kode_sub_sls' => 0,
             'nama_sls' => 'RT 01',
+            'nks' => 1234,
+            'perkiraan_jumlah_keluarga' => 10,
         ]);
 
         // Forbidden to toggle ceklis_ipds
@@ -124,5 +150,78 @@ class RbacTest extends TestCase
                 'state' => '1',
             ]);
         $response->assertStatus(200);
+    }
+
+    /**
+     * Test storing petugas lapangan and petugas entry.
+     */
+    public function test_store_petugas_lapangan_and_entry(): void
+    {
+        // 1. Storing petugas lapangan as superadmin should succeed and set default values
+        $response = $this->actingAs($this->superadmin)
+            ->postJson('/petugas-lapangan/store', [
+                'kode_petugas' => '999999',
+                'nama_petugas' => 'Test Lapangan',
+                'no_hp'        => '081234567890',
+                'jabatan'      => 'Pencacah (PPL)',
+                'status'       => 'Mitra',
+            ]);
+
+        $response->assertStatus(200)
+            ->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('petugas_lapangans', [
+            'kode_petugas' => '999999',
+            'provinsi'     => 16,
+            'kabupaten'    => 10,
+            'nama_petugas' => 'Test Lapangan',
+            'no_hp'        => '081234567890',
+            'kode_jabatan' => 1,
+            'jabatan'      => 'Pencacah (PPL)',
+            'status'       => 'Mitra',
+        ]);
+
+        // 2. Try storing petugas lapangan as adminipds -> should get 403
+        $response = $this->actingAs($this->adminipds)
+            ->postJson('/petugas-lapangan/store', [
+                'kode_petugas' => '888888',
+                'nama_petugas' => 'Test Lapangan 2',
+                'no_hp'        => '081234567891',
+                'jabatan'      => 'Pengawas (PML)',
+                'status'       => 'Staf Kabupaten',
+            ]);
+        $response->assertStatus(403);
+
+        // 3. Storing petugas entry as adminipds should succeed
+        $response = $this->actingAs($this->adminipds)
+            ->postJson('/petugas-entry/store', [
+                'kode_petugas' => '777777',
+                'nama_petugas' => 'Test Entry',
+                'email'        => 'testentry@bps.go.id',
+                'no_hp'        => '081234567892',
+            ]);
+
+        $response->assertStatus(200)
+            ->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('petugas_entries', [
+            'kode_petugas' => '777777',
+            'provinsi'     => 16,
+            'kabupaten'    => 10,
+            'nama_petugas' => 'Test Entry',
+            'email'        => 'testentry@bps.go.id',
+            'no_hp'        => '081234567892',
+            'status'       => 'Mitra',
+        ]);
+
+        // 4. Try storing petugas entry as adminsosial -> should get 403
+        $response = $this->actingAs($this->adminsosial)
+            ->postJson('/petugas-entry/store', [
+                'kode_petugas' => '666666',
+                'nama_petugas' => 'Test Entry 2',
+                'email'        => 'testentry2@bps.go.id',
+                'no_hp'        => '081234567893',
+            ]);
+        $response->assertStatus(403);
     }
 }

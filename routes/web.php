@@ -28,6 +28,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/import-petugas-entry', [PetugasEntryController::class, 'import'])->name('petugas_entry.import');
 
+    Route::post('/petugas-lapangan/store', [PetugasLapanganController::class, 'store'])->name('petugas_lapangan.store');
+    Route::post('/petugas-entry/store', [PetugasEntryController::class, 'store'])->name('petugas_entry.store');
+
     Route::post('/import-data-dssls', [DataDsslsController::class, 'import'])->name('data_dssls.import');
 
     Route::post('/import-data-dsrt', [DataDsrtController::class, 'import'])->name('data_dsrt.import');

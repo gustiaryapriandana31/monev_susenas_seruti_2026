@@ -46,6 +46,45 @@ class PetugasLapanganController extends Controller
         return back()->with('success', 'Data Petugas Lapangan Berhasil Diimport!');
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'kode_petugas' => 'required|string|unique:petugas_lapangans,kode_petugas',
+            'nama_petugas' => 'required|string',
+            'no_hp'        => 'required|string',
+            'jabatan'      => 'required|in:Pencacah (PPL),Pengawas (PML)',
+            'status'       => 'required|in:Mitra,Staf Kabupaten',
+        ], [
+            'kode_petugas.required' => 'Kode petugas wajib diisi.',
+            'kode_petugas.unique'   => 'Kode petugas sudah digunakan.',
+            'nama_petugas.required' => 'Nama petugas wajib diisi.',
+            'no_hp.required'        => 'Nomor HP wajib diisi.',
+            'jabatan.required'      => 'Jabatan wajib diisi.',
+            'status.required'       => 'Status wajib diisi.',
+        ]);
+
+        $kodeJabatan = $request->jabatan === 'Pencacah (PPL)' ? 1 : 2;
+
+        PetugasLapangan::create([
+            'kode_petugas' => $request->kode_petugas,
+            'provinsi'     => 16,
+            'kabupaten'    => 10,
+            'nama_petugas' => $request->nama_petugas,
+            'no_hp'        => $request->no_hp,
+            'kode_jabatan' => $kodeJabatan,
+            'jabatan'      => $request->jabatan,
+            'status'       => $request->status,
+        ]);
+
+        Cache::forget('dashboard_petugas_options');
+        Cache::forget('count_petugas_lapangan');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Petugas Lapangan berhasil ditambahkan!'
+        ]);
+    }
+
     public function deleteBulk(Request $request)
     {
         $request->validate([
