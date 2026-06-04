@@ -427,26 +427,30 @@
                         <tr>
                             {{-- Checkbox & Action: hanya non-adminipds --}}
                             @if (!$isAdminIpds)
-                                <th class="w-10 text-center"><input type="checkbox" id="selectAllDssls"
+                                <th class="w-10 text-center bg-stone-50/80 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800"><input type="checkbox" id="selectAllDssls"
                                         class="w-4 h-4 rounded-md border-gray-300"></th>
-                                <th>Action</th>
+                                <th class="bg-stone-50/80 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800">Action</th>
                             @endif
-                            <th>Wilayah</th>
-                            <th>SLS</th>
-                            <th>Keluarga Awal</th>
-                            <th>Keluarga Hasil Updating</th>
-                            <th>Ruta Hasil Updating</th>
-                            <th class="text-center">Lapangan</th>
-                            <th class="text-center">Sosial</th>
-                            <th class="text-center">IPDS</th>
-                            {{-- PPL & PML: superadmin dan adminsosial --}}
+                            <th class="bg-stone-50/80 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800">Wilayah</th>
+                            <th class="bg-stone-50/80 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800">SLS</th>
+                            
+                            {{-- Group 1: LAPANGAN s/d RUTA HASIL UPDATING (soft orange) --}}
+                            <th class="text-center bg-orange-100/70 dark:bg-orange-950/20 text-orange-700 dark:text-orange-300 border-b border-orange-200 dark:border-orange-800 border-l border-l-orange-200 dark:border-l-orange-800">Lapangan</th>
                             @if ($isSuperAdmin || $isAdminSosial)
-                                <th>PPL</th>
-                                <th>PML</th>
+                                <th class="bg-orange-100/70 dark:bg-orange-950/20 text-orange-700 dark:text-orange-300 border-b border-orange-200 dark:border-orange-800">PPL</th>
+                                <th class="bg-orange-100/70 dark:bg-orange-950/20 text-orange-700 dark:text-orange-300 border-b border-orange-200 dark:border-orange-800">PML</th>
                             @endif
-                            {{-- Entry: superadmin dan adminipds --}}
+                            <th class="bg-orange-100/70 dark:bg-orange-950/20 text-orange-700 dark:text-orange-300 border-b border-orange-200 dark:border-orange-800">Keluarga Awal</th>
+                            <th class="bg-orange-100/70 dark:bg-orange-950/20 text-orange-700 dark:text-orange-300 border-b border-orange-200 dark:border-orange-800">Keluarga Hasil Updating</th>
+                            <th class="bg-orange-100/70 dark:bg-orange-950/20 text-orange-700 dark:text-orange-300 border-b border-orange-200 dark:border-orange-800">Ruta Hasil Updating</th>
+                            
+                            {{-- Group 2: SOSIAL (soft blue) --}}
+                            <th class="text-center bg-blue-100/70 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 border-b border-blue-200 dark:border-blue-800 border-l border-l-blue-200 dark:border-l-blue-800">Sosial</th>
+                            
+                            {{-- Group 3: IPDS s/d ENTRY (soft teal) --}}
+                            <th class="text-center bg-teal-100/70 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 border-b border-teal-200 dark:border-teal-800 border-l border-l-teal-200 dark:border-l-teal-800">IPDS</th>
                             @if ($isSuperAdmin || $isAdminIpds)
-                                <th>Entry</th>
+                                <th class="bg-teal-100/70 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 border-b border-teal-200 dark:border-teal-800">Entry</th>
                             @endif
                         </tr>
                     </thead>
@@ -589,45 +593,43 @@
                         <tr>
                             {{-- Checkbox: hanya superadmin --}}
                             @if ($isSuperAdmin)
-                                <th class="w-10 text-center"><input type="checkbox" id="selectAllDsrt"
+                                <th class="w-10 text-center bg-stone-50/80 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800"><input type="checkbox" id="selectAllDsrt"
                                         class="w-4 h-4 rounded-md border-gray-300"></th>
                             @endif
-                            <th>Action</th>
-                            <th>Wilayah</th>
-                            <th>NBS/NKS</th>
-                            <th>KRT</th>
+                            <th class="bg-stone-50/80 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800">Action</th>
+                            <th class="bg-stone-50/80 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800">Wilayah</th>
+                            <th class="bg-stone-50/80 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800">NBS/NKS</th>
+                            <th class="bg-stone-50/80 dark:bg-stone-900/50 text-stone-700 dark:text-stone-300 border-b border-stone-200 dark:border-stone-800">KRT</th>
 
-                            <th class="text-center">Lapangan</th>
-                            <th class="text-center">Sosial</th>
-
-                            {{-- IPDS kolom posisi normal (superadmin & adminipds) --}}
-                            @if ($isSuperAdmin || $isAdminIpds)
-                                <th class="text-center">IPDS</th>
-                            @endif
-
-                            <th class="text-center">Pemeriksaan</th>
-
-                            {{-- PPL & PML: superadmin dan adminsosial --}}
+                            {{-- Group 1: LAPANGAN s/d PML (soft orange) --}}
+                            <th class="text-center bg-orange-100/70 dark:bg-orange-950/20 text-orange-700 dark:text-orange-300 border-b border-orange-200 dark:border-orange-800 border-l border-l-orange-200 dark:border-l-orange-800">Lapangan</th>
                             @if ($isSuperAdmin || $isAdminSosial)
-                                <th>PPL</th>
-                                <th>PML</th>
+                                <th class="bg-orange-100/70 dark:bg-orange-950/20 text-orange-700 dark:text-orange-300 border-b border-orange-200 dark:border-orange-800">R203 KOR</th>
+                                <th class="bg-orange-100/70 dark:bg-orange-950/20 text-orange-700 dark:text-orange-300 border-b border-orange-200 dark:border-orange-800">R203 KP</th>
+                                <th class="bg-orange-100/70 dark:bg-orange-950/20 text-orange-700 dark:text-orange-300 border-b border-orange-200 dark:border-orange-800">PPL</th>
+                                <th class="bg-orange-100/70 dark:bg-orange-950/20 text-orange-700 dark:text-orange-300 border-b border-orange-200 dark:border-orange-800">PML</th>
                             @endif
 
-                            {{-- Susenas & Seruti: superadmin dan adminipds --}}
-                            @if ($isSuperAdmin || $isAdminIpds)
-                                <th>Susenas</th>
-                                <th>Seruti</th>
-                            @endif
-
-                            {{-- R203 s/d Catatan KP: superadmin dan adminsosial (IPDS disembunyikan) --}}
+                            {{-- Group 2: SOSIAL s/d CATATAN KP (soft blue) --}}
+                            <th class="text-center bg-blue-100/70 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 border-b border-blue-200 dark:border-blue-800 border-l border-l-blue-200 dark:border-l-blue-800">Sosial</th>
                             @if ($isSuperAdmin || $isAdminSosial)
-                                <th>R203 KOR</th>
-                                <th>R203 KP</th>
-                                <th>R301 Jml ART</th>
-                                <th>R304 (VSEN26-KP)</th>
-                                <th>R305 (VSEN26-KP)</th>
-                                <th>Catatan KOR</th>
-                                <th>Catatan KP</th>
+                                <th class="bg-blue-100/70 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 border-b border-blue-200 dark:border-blue-800">Catatan KOR</th>
+                                <th class="bg-blue-100/70 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 border-b border-blue-200 dark:border-blue-800">Catatan KP</th>
+                            @endif
+
+                            {{-- Group 3: PEMERIKSAAN s/d R305 (soft teal) --}}
+                            <th class="text-center bg-teal-100/70 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 border-b border-teal-200 dark:border-teal-800 border-l border-l-teal-200 dark:border-l-teal-800">Pemeriksaan</th>
+                            @if ($isSuperAdmin || $isAdminSosial)
+                                <th class="bg-teal-100/70 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 border-b border-teal-200 dark:border-teal-800">R301 Jml ART</th>
+                                <th class="bg-teal-100/70 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 border-b border-teal-200 dark:border-teal-800">R304 (VSEN26-KP)</th>
+                                <th class="bg-teal-100/70 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 border-b border-teal-200 dark:border-teal-800">R305 (VSEN26-KP)</th>
+                            @endif
+
+                            {{-- Group 4: IPDS s/d SERUTI (soft purple) --}}
+                            @if ($isSuperAdmin || $isAdminIpds)
+                                <th class="text-center bg-purple-100/70 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800 border-l border-l-purple-200 dark:border-l-purple-800">IPDS</th>
+                                <th class="bg-purple-100/70 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">Susenas</th>
+                                <th class="bg-purple-100/70 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300 border-b border-purple-200 dark:border-purple-800">Seruti</th>
                             @endif
                         </tr>
                     </thead>

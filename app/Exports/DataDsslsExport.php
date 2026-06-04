@@ -114,11 +114,11 @@ class DataDsslsExport implements FromQuery, WithHeadings, WithMapping, WithStyle
         return [
             ['Data Progress Pemutakhiran Rumah Tangga'],
             [
-                'Kode Prop',
-                'Kode Kab',
-                'Kode NKS',
-                'Ceklis Pemutakhiran Lapangan?',
-                'Tanggal Ceklis Pemutakhiran Lapangan',
+                'kode prop [2 digit]',
+                'kode kab [2 digit]',
+                'kode NKS [5 digit]',
+                'Sudah Selesai 1 BS? [sudah/belum]',
+                'Tanggal penerimaan',
                 'Jumlah Keluarga Awal',
                 'Jumlah Keluarga Hasil Updating',
                 'Jumlah Rumah Tangga Hasil Updating',

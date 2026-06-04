@@ -114,12 +114,12 @@ class DataDsrtLapanganExport implements FromQuery, WithHeadings, WithMapping, Wi
         return [
             ['Data Progress Pencacahan Susenas'],
             [
-                'Kode Prop',
-                'Kode Kab',
-                'Kode NKS',
-                'No Urut Ruta',
-                'Ceklis Pencacahan Lapangan?',
-                'Tanggal Ceklis Pencacahan Lapangan',
+                'kode prop',
+                'kode kab',
+                'kode NKS',
+                'No Urut Ruta [max: 2 digit]',
+                'Sudah Selesai? [sudah/belum]',
+                'Tanggal penerimaan',
                 'Hasil Pencacahan Ruta (R203) KOR',
                 'Hasil Pencacahan Ruta (R203) KP',
             ],

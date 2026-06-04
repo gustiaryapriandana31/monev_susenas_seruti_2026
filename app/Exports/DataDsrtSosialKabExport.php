@@ -103,14 +103,14 @@ class DataDsrtSosialKabExport implements FromQuery, WithHeadings, WithMapping, W
         return [
             ['Data Progress Pengiriman Kuesioner Susenas ke Kabupaten'],
             [
-                'Kode Prop',
-                'Kode Kab',
-                'Kode NKS',
-                'No Urut Ruta',
-                'Ceklis Sosial?',
+                'kode prop [2 digit]',
+                'kode kab [2 digit]',
+                'kode NKS [5 digit]',
+                'No Urut Ruta [max: 2 digit]',
+                'Sudah Selesai? [sudah/belum]',
                 'Blok Catatan (KOR) Terisi Ya = 1 Tidak = 0',
                 'Blok Catatan (KP) Terisi Ya = 1 Tidak = 0',
-                'Tanggal Ceklis Sosial'
+                'Tanggal pengiriman'
             ],
             [
                 '',

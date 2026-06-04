@@ -99,12 +99,12 @@ class DataDsrtIPDSExport implements FromQuery, WithHeadings, WithMapping, WithSt
         return [
             ['Data Progress Penerimaan Kuesioner Susenas oleh IPDS'],
             [
-                'Kode Prop',
-                'Kode Kab',
-                'Kode NKS',
-                'No Urut Ruta',
-                'Ceklis IPDS?',
-                'Tanggal Ceklis IPDS'
+                'kode prop [2 digit]',
+                'kode kab [2 digit]',
+                'kode NKS [5 digit]',
+                'No Urut Ruta [max: 2 digit]',
+                'Sudah Selesai? [sudah/belum]',
+                'Tanggal penerimaan'
             ],
             [
                 '',

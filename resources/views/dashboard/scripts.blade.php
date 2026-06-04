@@ -327,140 +327,150 @@
         return cols;
     }
 
-    function dsslsColumns() {
+        function dsslsColumns() {
         var cols = [];
 
         // ── Checkbox & Action: tidak ada untuk adminipds ──
         if (!isAdminIpds) {
-            cols.push({ data:null, orderable:false, searchable:false, className:'text-center', render:function(d,t,row){return renderCheckbox(row,'dssls');} });
-            cols.push({ data:null, orderable:false, searchable:false, render:function(){return renderActionButton('dssls');} });
+            cols.push({ data:null, orderable:false, searchable:false, className:'text-center border-b border-stone-200 dark:border-stone-800', render:function(d,t,row){return renderCheckbox(row,'dssls');} });
+            cols.push({ data:null, orderable:false, searchable:false, className:'border-b border-stone-200 dark:border-stone-800', render:function(){return renderActionButton('dssls');} });
         }
 
         // ── Data utama ──
         cols.push(
-            { data:'nama_kecamatan', render:function(d,t,row){
+            { data:'nama_kecamatan', className:'border-b border-stone-200 dark:border-stone-800', render:function(d,t,row){
                 return '<p class="font-bold text-bps-dark text-xs">'+escapeHtml(row.nama_kecamatan)+'</p>'
                     +'<p class="text-[10px] text-gray-500 uppercase">'+escapeHtml(row.nama_desa_kelurahan)+'</p>';
             }},
-            { data:'kode_sls', render:function(d,t,row){
+            { data:'kode_sls', className:'border-b border-stone-200 dark:border-stone-800', render:function(d,t,row){
                 return '<p class="font-bold text-bps-dark text-xs">'+escapeHtml(row.kode_sls)+'</p>'
                     +'<p class="text-[10px] text-gray-500 uppercase truncate max-w-[150px]">'+escapeHtml(row.nama_sls)+'</p>';
-            }},
-            { data:'jumlah_keluarga_awal',              render:function(d,t,row){return renderIntCell(row,'jumlah_keluarga_awal','dssls',false);} },
-            { data:'jumlah_keluarga_hasil_updating',    render:function(d,t,row){return renderIntCell(row,'jumlah_keluarga_hasil_updating','dssls',false);} },
-            { data:'jumlah_rumah_tangga_hasil_updating',render:function(d,t,row){return renderIntCell(row,'jumlah_rumah_tangga_hasil_updating','dssls',false);} }
+            }}
         );
 
-        // ── Ceklis Lapangan ──
-        // adminipds : disabled icon
-        // semua lain : interactive
-        cols.push({ data:'ceklis_lap', className:'text-center', render:function(d,t,row){
+        // ── Group 1: LAPANGAN s/d RUTA HASIL UPDATING (soft orange) ──
+        // Ceklis Lapangan
+        cols.push({ data:'ceklis_lap', className:'text-center bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800 border-l border-l-orange-200 dark:border-l-orange-800', render:function(d,t,row){
             return isAdminIpds ? renderCeklisIcon(row,'ceklis_lap') : renderStatusCheckbox(row,'dssls','ceklis_lap');
         }});
 
-        // ── Ceklis Sosial ──
-        cols.push({ data:'ceklis_sosial', className:'text-center', render:function(d,t,row){
+        // Petugas PPL & PML: superadmin & adminsosial
+        if (isSuperAdmin || isAdminSosial) {
+            cols.push({ data:'petugas_ppl_nama', className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderPetugasCell(row,'petugas_ppl','dssls');} });
+            cols.push({ data:'petugas_pml_nama', className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderPetugasCell(row,'petugas_pml','dssls');} });
+        }
+
+        // Keluarga Awal, Keluarga Hasil, Ruta Hasil
+        cols.push(
+            { data:'jumlah_keluarga_awal',              className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderIntCell(row,'jumlah_keluarga_awal','dssls',false);} },
+            { data:'jumlah_keluarga_hasil_updating',    className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderIntCell(row,'jumlah_keluarga_hasil_updating','dssls',false);} },
+            { data:'jumlah_rumah_tangga_hasil_updating',className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderIntCell(row,'jumlah_rumah_tangga_hasil_updating','dssls',false);} }
+        );
+
+        // ── Group 2: SOSIAL (soft blue) ──
+        cols.push({ data:'ceklis_sosial', className:'text-center bg-blue-50/50 dark:bg-blue-950/12 border-b border-blue-200 dark:border-blue-800 border-l border-l-blue-200 dark:border-l-blue-800', render:function(d,t,row){
             return isAdminIpds ? renderCeklisIcon(row,'ceklis_sosial') : renderStatusCheckbox(row,'dssls','ceklis_sosial');
         }});
 
-        // ── Ceklis IPDS ──
-        // adminipds   : interactive ✅
-        // adminsosial : view-only icon
-        // superadmin  : interactive ✅
-        cols.push({ data:'ceklis_ipds', className:'text-center', render:function(d,t,row){
+        // ── Group 3: IPDS s/d ENTRY (soft teal) ──
+        cols.push({ data:'ceklis_ipds', className:'text-center bg-teal-50/50 dark:bg-teal-950/12 border-b border-teal-200 dark:border-teal-800 border-l border-l-teal-200 dark:border-l-teal-800', render:function(d,t,row){
             if (isAdminSosial) return renderCeklisIcon(row,'ceklis_ipds');
             return renderStatusCheckbox(row,'dssls','ceklis_ipds');
         }});
 
-        // ── Petugas PPL: superadmin & adminsosial ──
-        if (isSuperAdmin || isAdminSosial) {
-            cols.push({ data:'petugas_ppl_nama', render:function(d,t,row){return renderPetugasCell(row,'petugas_ppl','dssls');} });
-        }
-
-        // ── Petugas PML: superadmin & adminsosial ──
-        if (isSuperAdmin || isAdminSosial) {
-            cols.push({ data:'petugas_pml_nama', render:function(d,t,row){return renderPetugasCell(row,'petugas_pml','dssls');} });
-        }
-
-        // ── Petugas Entry: superadmin & adminipds ──
         if (isSuperAdmin || isAdminIpds) {
-            cols.push({ data:'petugas_entry_nama', render:function(d,t,row){return renderPetugasCell(row,'petugas_entry','dssls');} });
+            cols.push({ data:'petugas_entry_nama', className:'bg-teal-50/50 dark:bg-teal-950/12 border-b border-teal-200 dark:border-teal-800', render:function(d,t,row){return renderPetugasCell(row,'petugas_entry','dssls');} });
         }
 
         return cols;
     }
 
-    function dsrtColumns() {
+        function dsrtColumns() {
         var cols = [];
-        // isAdminIpds r203 dll read-only
         var ipdsReadOnly = isAdminIpds;
 
         // ── Checkbox: hanya superadmin ──
         if (isSuperAdmin) {
-            cols.push({ data:null, orderable:false, searchable:false, className:'text-center', render:function(d,t,row){return renderCheckbox(row,'dsrt');} });
+            cols.push({ data:null, orderable:false, searchable:false, className:'text-center border-b border-stone-200 dark:border-stone-800', render:function(d,t,row){return renderCheckbox(row,'dsrt');} });
         }
 
         // ── Action button (semua role) ──
-        cols.push({ data:null, orderable:false, searchable:false, render:function(){return renderActionButton('dsrt');} });
+        cols.push({ data:null, orderable:false, searchable:false, className:'border-b border-stone-200 dark:border-stone-800', render:function(){return renderActionButton('dsrt');} });
 
         // ── Data dasar (semua role) ──
         cols.push(
-            { data:'kec', render:function(d,t,row){
+            { data:'kec', className:'border-b border-stone-200 dark:border-stone-800', render:function(d,t,row){
                 return '<p class="font-bold text-bps-dark text-xs">'+escapeHtml(row.nmkec||row.kec)+'</p>'
                     +'<p class="text-[10px] text-gray-500 uppercase">'+escapeHtml(row.nmdesa||row.desa)+'</p>';
             }},
-            { data:'nmslsm', render:function(d,t,row){
+            { data:'nmslsm', className:'border-b border-stone-200 dark:border-stone-800', render:function(d,t,row){
                 return '<p class="font-bold text-bps-dark text-xs truncate max-w-[100px]">'+escapeHtml(row.nmslsm)+'</p>'
                     +'<p class="text-[10px] text-gray-500 uppercase">'+escapeHtml(row.nks_sak22)+'</p>';
             }},
-            { data:'r503', className:'font-medium text-xs', render:function(d){return escapeHtml(d);} }
+            { data:'r503', className:'font-medium text-xs border-b border-stone-200 dark:border-stone-800', render:function(d){return escapeHtml(d);} }
         );
 
-        // ── Ceklis Lapangan ──
-        cols.push({ data:'ceklis_lap', className:'text-center', render:function(d,t,row){
+        // ── Group 1: LAPANGAN s/d PML (soft orange) ──
+        // Ceklis Lapangan
+        cols.push({ data:'ceklis_lap', className:'text-center bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800 border-l border-l-orange-200 dark:border-l-orange-800', render:function(d,t,row){
             return isAdminIpds ? renderCeklisIcon(row,'ceklis_lap') : renderStatusCheckbox(row,'dsrt','ceklis_lap');
         }});
 
-        // ── Ceklis Sosial ──
-        cols.push({ data:'ceklis_sosial', className:'text-center', render:function(d,t,row){
+        // R203 KOR & R203 KP: superadmin & adminsosial
+        if (isSuperAdmin || isAdminSosial) {
+            cols.push(
+                { data:'r203_kor', className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderEnumCell(row,'r203_kor',ipdsReadOnly);} },
+                { data:'r203_kp',  className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderEnumCell(row,'r203_kp',ipdsReadOnly);} }
+            );
+        }
+
+        // Petugas PPL & PML: superadmin & adminsosial
+        if (isSuperAdmin || isAdminSosial) {
+            cols.push({ data:'petugas_ppl_nama', className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderPetugasCell(row,'petugas_ppl','dsrt');} });
+            cols.push({ data:'petugas_pml_nama', className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderPetugasCell(row,'petugas_pml','dsrt');} });
+        }
+
+        // ── Group 2: SOSIAL s/d CATATAN KP (soft blue) ──
+        // Ceklis Sosial
+        cols.push({ data:'ceklis_sosial', className:'text-center bg-blue-50/50 dark:bg-blue-950/12 border-b border-blue-200 dark:border-blue-800 border-l border-l-blue-200 dark:border-l-blue-800', render:function(d,t,row){
             return isAdminIpds ? renderCeklisIcon(row,'ceklis_sosial') : renderStatusCheckbox(row,'dsrt','ceklis_sosial');
         }});
 
-        // ── Ceklis IPDS posisi normal: superadmin & adminipds ──
+        // Catatan KOR & Catatan KP: superadmin & adminsosial
+        if (isSuperAdmin || isAdminSosial) {
+            cols.push(
+                { data:'blok_catatan_kor', className:'bg-blue-50/50 dark:bg-blue-950/12 border-b border-blue-200 dark:border-blue-800', render:function(d,t,row){return renderBoolCell(row,'blok_catatan_kor',ipdsReadOnly);} },
+                { data:'blok_catatan_kp',  className:'bg-blue-50/50 dark:bg-blue-950/12 border-b border-blue-200 dark:border-blue-800', render:function(d,t,row){return renderBoolCell(row,'blok_catatan_kp',ipdsReadOnly);} }
+            );
+        }
+
+        // ── Group 3: PEMERIKSAAN s/d R305 (soft teal) ──
+        // Ceklis Pemeriksaan
+        cols.push({ data:'ceklis_pemeriksaan', className:'text-center bg-teal-50/50 dark:bg-teal-950/12 border-b border-teal-200 dark:border-teal-800 border-l border-l-teal-200 dark:border-l-teal-800', render:function(d,t,row){
+            return isAdminIpds ? renderCeklisIcon(row,'ceklis_pemeriksaan') : renderStatusCheckbox(row,'dsrt','ceklis_pemeriksaan');
+        }});
+
+        // R301 Jml ART, R304, R305: superadmin & adminsosial
+        if (isSuperAdmin || isAdminSosial) {
+            cols.push(
+                { data:'r301_jumlah_art',  className:'bg-teal-50/50 dark:bg-teal-950/12 border-b border-teal-200 dark:border-teal-800', render:function(d,t,row){return renderIntCell(row,'r301_jumlah_art','dsrt',ipdsReadOnly);} },
+                { data:'r304_vsen26kp',    className:'bg-teal-50/50 dark:bg-teal-950/12 border-b border-teal-200 dark:border-teal-800', render:function(d,t,row){return renderIntCell(row,'r304_vsen26kp','dsrt',ipdsReadOnly);} },
+                { data:'r305_vsen26kp',    className:'bg-teal-50/50 dark:bg-teal-950/12 border-b border-teal-200 dark:border-teal-800', render:function(d,t,row){return renderIntCell(row,'r305_vsen26kp','dsrt',ipdsReadOnly);} }
+            );
+        }
+
+        // ── Group 4: IPDS s/d SERUTI (soft purple) ──
+        // Ceklis IPDS
         if (isSuperAdmin || isAdminIpds) {
-            cols.push({ data:'ceklis_ipds', className:'text-center', render:function(d,t,row){
+            cols.push({ data:'ceklis_ipds', className:'text-center bg-purple-50/50 dark:bg-purple-950/12 border-b border-purple-200 dark:border-purple-800 border-l border-l-purple-200 dark:border-l-purple-800', render:function(d,t,row){
                 return renderStatusCheckbox(row,'dsrt','ceklis_ipds');
             }});
         }
 
-        // ── Ceklis Pemeriksaan ──
-        cols.push({ data:'ceklis_pemeriksaan', className:'text-center', render:function(d,t,row){
-            return isAdminIpds ? renderCeklisIcon(row,'ceklis_pemeriksaan') : renderStatusCheckbox(row,'dsrt','ceklis_pemeriksaan');
-        }});
-
-        // ── Petugas PPL & PML: superadmin & adminsosial ──
-        if (isSuperAdmin || isAdminSosial) {
-            cols.push({ data:'petugas_ppl_nama', render:function(d,t,row){return renderPetugasCell(row,'petugas_ppl','dsrt');} });
-            cols.push({ data:'petugas_pml_nama', render:function(d,t,row){return renderPetugasCell(row,'petugas_pml','dsrt');} });
-        }
-
-        // ── Petugas Susenas & Seruti: superadmin & adminipds ──
+        // Petugas Susenas & Seruti: superadmin & adminipds
         if (isSuperAdmin || isAdminIpds) {
-            cols.push({ data:'petugas_susenas_nama', render:function(d,t,row){return renderPetugasCell(row,'petugas_susenas','dsrt');} });
-            cols.push({ data:'petugas_seruti_nama',  render:function(d,t,row){return renderPetugasCell(row,'petugas_seruti','dsrt');} });
-        }
-
-        // ── R203 s/d Catatan KP: superadmin & adminsosial ──
-        if (isSuperAdmin || isAdminSosial) {
-            cols.push(
-                { data:'r203_kor',         render:function(d,t,row){return renderEnumCell(row,'r203_kor',ipdsReadOnly);} },
-                { data:'r203_kp',          render:function(d,t,row){return renderEnumCell(row,'r203_kp',ipdsReadOnly);} },
-                { data:'r301_jumlah_art',  render:function(d,t,row){return renderIntCell(row,'r301_jumlah_art','dsrt',ipdsReadOnly);} },
-                { data:'r304_vsen26kp',    render:function(d,t,row){return renderIntCell(row,'r304_vsen26kp','dsrt',ipdsReadOnly);} },
-                { data:'r305_vsen26kp',    render:function(d,t,row){return renderIntCell(row,'r305_vsen26kp','dsrt',ipdsReadOnly);} },
-                { data:'blok_catatan_kor', render:function(d,t,row){return renderBoolCell(row,'blok_catatan_kor',ipdsReadOnly);} },
-                { data:'blok_catatan_kp',  render:function(d,t,row){return renderBoolCell(row,'blok_catatan_kp',ipdsReadOnly);} }
-            );
+            cols.push({ data:'petugas_susenas_nama', className:'bg-purple-50/50 dark:bg-purple-950/12 border-b border-purple-200 dark:border-purple-800', render:function(d,t,row){return renderPetugasCell(row,'petugas_susenas','dsrt');} });
+            cols.push({ data:'petugas_seruti_nama',  className:'bg-purple-50/50 dark:bg-purple-950/12 border-b border-purple-200 dark:border-purple-800', render:function(d,t,row){return renderPetugasCell(row,'petugas_seruti','dsrt');} });
         }
 
         return cols;

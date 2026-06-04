@@ -99,12 +99,12 @@ class DataDsrtSosialExport implements FromQuery, WithHeadings, WithMapping, With
         return [
             ['Data Progress Penerimaan Kuesioner Susenas oleh Kabupaten'],
             [
-                'Kode Prop',
-                'Kode Kab',
-                'Kode NKS',
-                'No Urut Ruta',
-                'Ceklis Sosial?',
-                'Tanggal Ceklis Sosial'
+                'kode prop [2 digit]',
+                'kode kab [2 digit]',
+                'kode NKS [5 digit]',
+                'No Urut Ruta [max: 2 digit]',
+                'Sudah Selesai? [sudah / belum]',
+                'Tanggal penerimaan'
             ],
             [
                 '',
