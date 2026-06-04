@@ -224,4 +224,61 @@ class RbacTest extends TestCase
             ]);
         $response->assertStatus(403);
     }
+
+    /**
+     * Test export rekap petugas entry.
+     */
+    public function test_export_rekap_petugas(): void
+    {
+        $response = $this->actingAs($this->superadmin)
+            ->get('/dashboard/export-rekap');
+
+        $response->assertStatus(200);
+        $this->assertTrue(
+            str_contains($response->headers->get('content-disposition'), 'attachment; filename=rekap_penugasan_petugas_entry.xlsx')
+        );
+    }
+
+    /**
+     * Test that adminipds cannot update DSSLS integer fields (keluarga_awal, keluarga_hasil_updating, ruta_hasil_updating)
+     * but adminsosial / superadmin can.
+     */
+    public function test_adminipds_dssls_inline_update_permissions(): void
+    {
+        $dssls = DataDssls::create([
+            'provinsi' => 32,
+            'nama_provinsi' => 'JAWA BARAT',
+            'kabupaten' => 1,
+            'nama_kabupaten' => 'BOGOR',
+            'kecamatan' => 10,
+            'nama_kecamatan' => 'CIBINONG',
+            'desa_kelurahan' => 1,
+            'nama_desa_kelurahan' => 'CIBINONG',
+            'klasifikasi_desa(k/p)' => 'K',
+            'strata_konsentrasi_kesejahteraan' => '1',
+            'kode_sls' => '32010100010001',
+            'kode_sub_sls' => 0,
+            'nama_sls' => 'RT 01',
+            'nks' => 1234,
+            'perkiraan_jumlah_keluarga' => 10,
+        ]);
+
+        // adminipds tries to update jumlah_keluarga_awal inline -> 403 Forbidden
+        $response = $this->actingAs($this->adminipds)
+            ->postJson('/data-dssls/update-inline', [
+                'id' => $dssls->id,
+                'field' => 'jumlah_keluarga_awal',
+                'value' => 12,
+            ]);
+        $response->assertStatus(403);
+
+        // adminsosial tries to update jumlah_keluarga_awal inline -> 200 OK
+        $response = $this->actingAs($this->adminsosial)
+            ->postJson('/data-dssls/update-inline', [
+                'id' => $dssls->id,
+                'field' => 'jumlah_keluarga_awal',
+                'value' => 12,
+            ]);
+        $response->assertStatus(200);
+    }
 }

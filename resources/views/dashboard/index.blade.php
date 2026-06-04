@@ -162,10 +162,17 @@
                     <h3 class="text-lg font-bold text-bps-dark">Rekap Penugasan Petugas Entry</h3>
                     <p class="text-gray-500 text-xs">Jumlah beban tugas entry data per petugas</p>
                 </div>
-                {{-- Search bar --}}
-                <div class="relative w-full md:w-64">
-                    <input type="text" id="search-rekap" placeholder="Cari nama atau kode petugas..." class="w-full rounded-lg border border-gray-200 p-2.5 pl-9 text-xs focus:ring-bps-orange focus:outline-none">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-[11px] text-gray-400"></i>
+                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    {{-- Export Button --}}
+                    <button type="button" onclick="exportRekapPetugas()"
+                        class="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-file-excel"></i> Export Rekap
+                    </button>
+                    {{-- Search bar --}}
+                    <div class="relative w-full md:w-64">
+                        <input type="text" id="search-rekap" placeholder="Cari nama atau kode petugas..." class="w-full rounded-lg border border-gray-200 p-2.5 pl-9 text-xs focus:ring-bps-orange focus:outline-none">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-[11px] text-gray-400"></i>
+                    </div>
                 </div>
             </div>
             <div class="overflow-x-auto w-full">

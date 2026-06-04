@@ -47,6 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/data-dsrt/export-sosial-kab', [DataDsrtController::class, 'exportSosialKab'])->name('data_dsrt.export_sosial_kab');
     Route::get('/data-dsrt/export-lapangan', [DataDsrtController::class, 'exportLapangan'])->name('data_dsrt.export_lapangan');
     Route::get('/data-dsrt/export-pemeriksaan', [DataDsrtController::class, 'exportPemeriksaan'])->name('data_dsrt.export_pemeriksaan');
+    Route::get('/dashboard/export-rekap', [DashboardController::class, 'exportRekap'])->name('dashboard.export_rekap');
 
     // Update Routes
     Route::post('/data-dssls/update', [DataDsslsController::class, 'update'])->name('data_dssls.update');

@@ -291,6 +291,70 @@ class DashboardController extends Controller
         return response()->json($data);
     }
 
+    public function exportRekap(Request $request)
+    {
+        $kecamatan = $request->input('kecamatan');
+        $desa = $request->input('desa');
+
+        // Rekap Penugasan Petugas Entry
+        $dsslsCountsQuery = DataDssls::select('petugas_entry', DB::raw('count(*) as count'))
+            ->whereNotNull('petugas_entry')
+            ->groupBy('petugas_entry');
+        if ($kecamatan) {
+            $dsslsCountsQuery->whereRaw('TRIM(nama_kecamatan) = ?', [$kecamatan]);
+        }
+        if ($desa) {
+            $dsslsCountsQuery->whereRaw('TRIM(nama_desa_kelurahan) = ?', [$desa]);
+        }
+        $dsslsCounts = $dsslsCountsQuery->pluck('count', 'petugas_entry')->toArray();
+
+        $susenasCountsQuery = DataDsrt::select('petugas_susenas', DB::raw('count(*) as count'))
+            ->whereNotNull('petugas_susenas')
+            ->groupBy('petugas_susenas');
+        if ($kecamatan) {
+            $susenasCountsQuery->where('nmkec', $kecamatan);
+        }
+        if ($desa) {
+            $susenasCountsQuery->where('nmdesa', $desa);
+        }
+        $susenasCounts = $susenasCountsQuery->pluck('count', 'petugas_susenas')->toArray();
+
+        $serutiCountsQuery = DataDsrt::select('petugas_seruti', DB::raw('count(*) as count'))
+            ->whereNotNull('petugas_seruti')
+            ->groupBy('petugas_seruti');
+        if ($kecamatan) {
+            $serutiCountsQuery->where('nmkec', $kecamatan);
+        }
+        if ($desa) {
+            $serutiCountsQuery->where('nmdesa', $desa);
+        }
+        $serutiCounts = $serutiCountsQuery->pluck('count', 'petugas_seruti')->toArray();
+
+        $rekapEntry = PetugasEntry::select('kode_petugas', 'nama_petugas')
+            ->get()
+            ->map(function ($p) use ($dsslsCounts, $susenasCounts, $serutiCounts) {
+                $pemutakhiran = $dsslsCounts[$p->kode_petugas] ?? 0;
+                $susenas = $susenasCounts[$p->kode_petugas] ?? 0;
+                $seruti = $serutiCounts[$p->kode_petugas] ?? 0;
+                return [
+                    'nama' => $p->nama_petugas,
+                    'kode' => $p->kode_petugas,
+                    'pemutakhiran' => $pemutakhiran,
+                    'susenas' => $susenas,
+                    'seruti' => $seruti,
+                    'total' => $pemutakhiran + $susenas + $seruti,
+                ];
+            })
+            ->sortByDesc('total')
+            ->values()
+            ->all();
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\RekapPetugasExport($rekapEntry),
+            'rekap_penugasan_petugas_entry.xlsx'
+        );
+    }
+
     public function datatableLapangan(Request $request)
     {
         $columns = [

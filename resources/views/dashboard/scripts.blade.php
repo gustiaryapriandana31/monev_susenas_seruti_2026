@@ -362,9 +362,9 @@
 
         // Keluarga Awal, Keluarga Hasil, Ruta Hasil
         cols.push(
-            { data:'jumlah_keluarga_awal',              className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderIntCell(row,'jumlah_keluarga_awal','dssls',false);} },
-            { data:'jumlah_keluarga_hasil_updating',    className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderIntCell(row,'jumlah_keluarga_hasil_updating','dssls',false);} },
-            { data:'jumlah_rumah_tangga_hasil_updating',className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderIntCell(row,'jumlah_rumah_tangga_hasil_updating','dssls',false);} }
+            { data:'jumlah_keluarga_awal',              className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderIntCell(row,'jumlah_keluarga_awal','dssls',isAdminIpds);} },
+            { data:'jumlah_keluarga_hasil_updating',    className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderIntCell(row,'jumlah_keluarga_hasil_updating','dssls',isAdminIpds);} },
+            { data:'jumlah_rumah_tangga_hasil_updating',className:'bg-orange-50/50 dark:bg-orange-950/12 border-b border-orange-200 dark:border-orange-800', render:function(d,t,row){return renderIntCell(row,'jumlah_rumah_tangga_hasil_updating','dssls',isAdminIpds);} }
         );
 
         // ── Group 2: SOSIAL (soft blue) ──
@@ -648,10 +648,10 @@
 
             // 1. Chart DSRT Progress breakdown (Bar)
             initChart('chart-dsrt', 'bar',
-                ['Lapangan', 'Sosial', 'IPDS', 'Pemeriksaan'],
+                ['Lapangan', 'Pemeriksaan', 'Sosial', 'IPDS'],
                 [{
                     label: 'Selesai Ceklis',
-                    data: [res.dsrt.lap, res.dsrt.sosial, res.dsrt.ipds, res.dsrt.pemeriksaan],
+                    data: [res.dsrt.lap, res.dsrt.pemeriksaan, res.dsrt.sosial, res.dsrt.ipds],
                     backgroundColor: '#3b82f6',
                     borderRadius: 4
                 }],
@@ -1098,5 +1098,12 @@
             positionDsrtMenu();
         }
     });
+
+    window.exportRekapPetugas = function() {
+        var kec = $('#filter-kecamatan').val() || '';
+        var desa = $('#filter-desa').val() || '';
+        var url = '{{ route("dashboard.export_rekap") }}?kecamatan=' + encodeURIComponent(kec) + '&desa=' + encodeURIComponent(desa);
+        window.location.href = url;
+    };
 </script>
 @endpush
