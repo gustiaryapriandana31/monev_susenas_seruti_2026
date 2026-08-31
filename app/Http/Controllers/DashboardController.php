@@ -395,7 +395,7 @@ class DashboardController extends Controller
         }
 
         $data = $filteredQuery
-            ->select(['id', 'kode_petugas', 'provinsi', 'kabupaten', 'nama_petugas', 'no_hp', 'jabatan', 'status'])
+            ->select(['kode_petugas', 'provinsi', 'kabupaten', 'nama_petugas', 'no_hp', 'jabatan', 'status'])
             ->orderBy($orderColumn, $orderDirection)
             ->get();
 
@@ -447,7 +447,7 @@ class DashboardController extends Controller
         }
 
         $data = $filteredQuery
-            ->select(['id', 'kode_petugas', 'provinsi', 'kabupaten', 'nama_petugas', 'email', 'no_hp', 'status'])
+            ->select(['kode_petugas', 'provinsi', 'kabupaten', 'nama_petugas', 'email', 'no_hp', 'status'])
             ->orderBy($orderColumn, $orderDirection)
             ->get();
 
