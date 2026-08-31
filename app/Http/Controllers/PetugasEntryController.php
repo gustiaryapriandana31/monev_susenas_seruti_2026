@@ -86,10 +86,10 @@ class PetugasEntryController extends Controller
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:petugas_entries,id'
+            'ids.*' => 'exists:petugas_entries,kode_petugas'
         ]);
 
-        PetugasEntry::whereIn('id', $request->ids)->delete();
+        PetugasEntry::whereIn('kode_petugas', $request->ids)->delete();
 
         Cache::forget('dashboard_petugas_options');
         Cache::forget('count_petugas_entry');

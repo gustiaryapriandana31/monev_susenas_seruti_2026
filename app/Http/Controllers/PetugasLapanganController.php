@@ -89,10 +89,10 @@ class PetugasLapanganController extends Controller
     {
         $request->validate([
             'ids'   => 'required|array',
-            'ids.*' => 'exists:petugas_lapangans,id'
+            'ids.*' => 'exists:petugas_lapangans,kode_petugas'
         ]);
 
-        PetugasLapangan::whereIn('id', $request->ids)->delete();
+        PetugasLapangan::whereIn('kode_petugas', $request->ids)->delete();
 
         Cache::forget('dashboard_petugas_options');
         Cache::forget('count_petugas_lapangan');
