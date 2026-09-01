@@ -5,10 +5,21 @@ namespace App\Imports;
 use App\Models\PetugasLapangan;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 
-class PetugasLapanganImport implements ToModel, WithHeadingRow, WithValidation
+class PetugasLapanganImport implements ToModel, WithHeadingRow, SkipsEmptyRows
 {
+    /**
+     * Baris pertama Excel adalah header.
+     */
+    public function headingRow(): int
+    {
+        return 1;
+    }
+
+    /**
+     * Ambil nilai berdasarkan beberapa kemungkinan nama kolom.
+     */
     private function getValue(array $row, array $keys)
     {
         foreach ($keys as $key) {
@@ -16,14 +27,24 @@ class PetugasLapanganImport implements ToModel, WithHeadingRow, WithValidation
                 return $row[$key];
             }
         }
-        
-        // Coba cari nama kolom secara parsial/kasar untuk antisipasi spasi tersembunyi
-        foreach ($row as $rowKey => $val) {
-            $cleanRowKey = str_replace(['_', ' '], '', strtolower($rowKey));
+
+        // Antisipasi spasi / underscore / tanda hubung
+        foreach ($row as $rowKey => $value) {
+            $cleanRowKey = str_replace(
+                ['_', ' ', '-', '.'],
+                '',
+                strtolower(trim((string) $rowKey))
+            );
+
             foreach ($keys as $key) {
-                $cleanKey = str_replace(['_', ' '], '', strtolower($key));
-                if ($cleanRowKey === $cleanKey || str_contains($cleanRowKey, $cleanKey)) {
-                    return $val;
+                $cleanKey = str_replace(
+                    ['_', ' ', '-', '.'],
+                    '',
+                    strtolower(trim((string) $key))
+                );
+
+                if ($cleanRowKey === $cleanKey) {
+                    return $value;
                 }
             }
         }
@@ -32,35 +53,93 @@ class PetugasLapanganImport implements ToModel, WithHeadingRow, WithValidation
     }
 
     /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
+     * Excel:
+     * 1 = Pencacah
+     * 2 = Pengawas
+     */
+    private function getJabatan($status): ?string
+    {
+        $status = trim((string) $status);
+
+        return match ($status) {
+            '1' => 'Pencacah (PPL)',
+            '2' => 'Pengawas (PML)',
+            default => null,
+        };
+    }
+
+    /**
+     * Import / update data petugas.
+     */
     public function model(array $row)
     {
-        return new PetugasLapangan([
-            'kode_petugas' => $this->getValue($row, ['kode_petugas']),
-            'provinsi' => $this->getValue($row, ['provinsi']),
-            'kabupaten' => $this->getValue($row, ['kabupaten']),
-            'nama_petugas' => $this->getValue($row, ['nama_petugas']),
-            'no_hp' => $this->getValue($row, ['no_hp']),
-            'kode_jabatan' => $this->getValue($row, ['kode_jabatan']),
-            'jabatan' => $this->getValue($row, ['jabatan']),
-            'status' => $this->getValue($row, ['status']),
+        $kodePetugas = $this->getValue($row, [
+            'kode_petugas',
+            'kode',
         ]);
-    }
 
-    public function rules(): array
-    {
-        return [
-            'kode_petugas' => 'unique:petugas_lapangans,kode_petugas',
-        ];
-    }
+        $provinsi = $this->getValue($row, [
+            'provinsi',
+            'prop',
+        ]);
 
-    public function customValidationMessages()
-    {
-        return [
-            'kode_petugas.unique' => 'Data petugas dengan kode ini sudah ada di sistem. Gagal import duplikat.',
-        ];
+        $kabupaten = $this->getValue($row, [
+            'kabupaten',
+            'kab',
+        ]);
+
+        $namaPetugas = $this->getValue($row, [
+            'nama_petugas',
+            'nama',
+        ]);
+
+        $noHp = $this->getValue($row, [
+            'no_hp',
+            'no hp',
+            'nohp',
+        ]);
+
+        $status = $this->getValue($row, [
+            'status',
+        ]);
+
+        /*
+         * Lewati baris yang bukan data petugas.
+         * Ini juga membuat baris keterangan di Excel tidak masuk database.
+         */
+        if (empty($kodePetugas) || empty($namaPetugas)) {
+            return null;
+        }
+
+        $jabatan = $this->getJabatan($status);
+
+        /*
+         * Kalau status bukan 1 atau 2, abaikan baris tersebut.
+         */
+        if ($jabatan === null) {
+            return null;
+        }
+
+        /*
+         * Jika kode_petugas sudah ada:
+         *     UPDATE data lama
+         *
+         * Jika belum ada:
+         *     INSERT data baru
+         */
+        return PetugasLapangan::updateOrCreate(
+            [
+                'kode_petugas' => trim((string) $kodePetugas),
+            ],
+            [
+                'provinsi' => $provinsi,
+                'kabupaten' => $kabupaten,
+                'nama_petugas' => trim((string) $namaPetugas),
+                'no_hp' => $noHp,
+                'kode_jabatan' => $status,
+                'jabatan' => $jabatan,
+                'status' => $status,
+            ]
+        );
     }
 }
