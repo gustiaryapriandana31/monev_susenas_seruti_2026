@@ -102,7 +102,11 @@ class DataDsslsController extends Controller
 
     public function export()
     {
-        return Excel::download(new DataDsslsExport, 'Export Data DSSLS Pemutakhiran Sosial.xlsx');
+        return Excel::download(
+            new DataDsslsExport,
+            'Export Data DSSLS Pemutakhiran Sosial.xls',
+            \Maatwebsite\Excel\Excel::XLS
+        );
     }
 
     public function exportOri()
