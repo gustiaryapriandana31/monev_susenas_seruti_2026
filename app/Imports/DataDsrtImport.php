@@ -48,7 +48,12 @@ class DataDsrtImport extends DefaultValueBinder implements ToModel, WithHeadingR
             'r503' => $row['r503'] ?? null,
             'r503b' => $row['r503b'] ?? null,
             'dsrt_ssn' => $row['dsrt_ssn'] ?? null,
-            'nus_ssn' => $row['nus_ssn'] ?? null,
+            // NUS SSN pada All.xlsx memang kosong untuk baris yang DSRT SSN-nya 0.
+            // Kolom nus_ssn di database bersifat NOT NULL, sehingga nilai kosong
+            // harus disimpan sebagai 0, bukan null.
+            'nus_ssn' => ($row['nus_ssn'] === '' || $row['nus_ssn'] === null)
+                ? 0
+                : $row['nus_ssn'],
             'petugas_ppl' => $row['petugas_ppl'] ?? null,
             'petugas_pml' => $row['petugas_pml'] ?? null,
             'ceklis_lap' => in_array(strtolower(trim($row['ceklis_lap'] ?? '')), ['v', '1', 'ya', 'yes', 'true', 'x']) ? true : false,
