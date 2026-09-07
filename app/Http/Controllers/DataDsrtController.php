@@ -13,6 +13,7 @@ use App\Exports\DataDsrtLapanganExport;
 use App\Exports\DataDsrtPemeriksaanExport;
 use App\Models\DataDsrt;
 use Carbon\Carbon;
+use App\Services\DsrtTemplateExportService;
 
 class DataDsrtController extends Controller
 {
@@ -82,36 +83,40 @@ class DataDsrtController extends Controller
         return Excel::download(new DataDsrtIPDSExport, 'Export Data DSRT untuk IPDS.xls');
     }
 
-    public function exportSosial()
+    public function exportSosial(DsrtTemplateExportService $exporter)
     {
         if (!auth()->user()->isSuperAdmin() && !auth()->user()->isAdminSosial()) {
             abort(403, 'Akses ditolak.');
         }
-        return Excel::download(new DataDsrtSosialExport, 'Export Data DSRT Sosial Penerimaan oleh Kabupaten.xls');
+
+        return $exporter->download('sosial');
     }
 
-    public function exportSosialKab()
+    public function exportSosialKab(DsrtTemplateExportService $exporter)
     {
         if (!auth()->user()->isSuperAdmin() && !auth()->user()->isAdminSosial()) {
             abort(403, 'Akses ditolak.');
         }
-        return Excel::download(new DataDsrtSosialKabExport, 'Export Data DSRT Sosial Pengiriman ke Kabupaten.xls');
+
+        return $exporter->download('sosial-kab');
     }
 
-    public function exportLapangan()
+    public function exportLapangan(DsrtTemplateExportService $exporter)
     {
         if (!auth()->user()->isSuperAdmin() && !auth()->user()->isAdminSosial()) {
             abort(403, 'Akses ditolak.');
         }
-        return Excel::download(new DataDsrtLapanganExport, 'Export Data DSRT untuk Lapangan.xls');
+
+        return $exporter->download('lapangan');
     }
 
-    public function exportPemeriksaan()
+    public function exportPemeriksaan(DsrtTemplateExportService $exporter)
     {
         if (!auth()->user()->isSuperAdmin() && !auth()->user()->isAdminSosial()) {
             abort(403, 'Akses ditolak.');
         }
-        return Excel::download(new DataDsrtPemeriksaanExport, 'Export Data DSRT untuk Pemeriksaan.xls');
+
+        return $exporter->download('pemeriksaan');
     }
 
     public function update(Request $request)
