@@ -79,7 +79,7 @@ class DataDsrtController extends Controller
         if (!auth()->user()->isSuperAdmin() && !auth()->user()->isAdminIpds()) {
             abort(403, 'Akses ditolak.');
         }
-        return Excel::download(new DataDsrtIPDSExport, 'Export Data DSRT untuk IPDS.xlsx');
+        return Excel::download(new DataDsrtIPDSExport, 'Export Data DSRT untuk IPDS.xls');
     }
 
     public function exportSosial()
@@ -87,7 +87,7 @@ class DataDsrtController extends Controller
         if (!auth()->user()->isSuperAdmin() && !auth()->user()->isAdminSosial()) {
             abort(403, 'Akses ditolak.');
         }
-        return Excel::download(new DataDsrtSosialExport, 'Export Data DSRT Sosial Penerimaan oleh Kabupaten.xlsx');
+        return Excel::download(new DataDsrtSosialExport, 'Export Data DSRT Sosial Penerimaan oleh Kabupaten.xls');
     }
 
     public function exportSosialKab()
@@ -95,7 +95,7 @@ class DataDsrtController extends Controller
         if (!auth()->user()->isSuperAdmin() && !auth()->user()->isAdminSosial()) {
             abort(403, 'Akses ditolak.');
         }
-        return Excel::download(new DataDsrtSosialKabExport, 'Export Data DSRT Sosial Pengiriman ke Kabupaten.xlsx');
+        return Excel::download(new DataDsrtSosialKabExport, 'Export Data DSRT Sosial Pengiriman ke Kabupaten.xls');
     }
 
     public function exportLapangan()
@@ -103,7 +103,7 @@ class DataDsrtController extends Controller
         if (!auth()->user()->isSuperAdmin() && !auth()->user()->isAdminSosial()) {
             abort(403, 'Akses ditolak.');
         }
-        return Excel::download(new DataDsrtLapanganExport, 'Export Data DSRT untuk Lapangan.xlsx');
+        return Excel::download(new DataDsrtLapanganExport, 'Export Data DSRT untuk Lapangan.xls');
     }
 
     public function exportPemeriksaan()
@@ -111,7 +111,7 @@ class DataDsrtController extends Controller
         if (!auth()->user()->isSuperAdmin() && !auth()->user()->isAdminSosial()) {
             abort(403, 'Akses ditolak.');
         }
-        return Excel::download(new DataDsrtPemeriksaanExport, 'Export Data DSRT untuk Pemeriksaan.xlsx');
+        return Excel::download(new DataDsrtPemeriksaanExport, 'Export Data DSRT untuk Pemeriksaan.xls');
     }
 
     public function update(Request $request)
