@@ -627,9 +627,9 @@
                             {{-- Group 3: PEMERIKSAAN s/d R305 (soft teal) --}}
                             <th class="text-center bg-teal-100/70 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 border-b border-teal-200 dark:border-teal-800 border-l border-l-teal-200 dark:border-l-teal-800">Pemeriksaan</th>
                             @if ($isSuperAdmin || $isAdminSosial)
-                                <th class="bg-teal-100/70 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 border-b border-teal-200 dark:border-teal-800">R301 Jml ART</th>
-                                <th class="bg-teal-100/70 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 border-b border-teal-200 dark:border-teal-800">R304 (VSEN26-KP)</th>
-                                <th class="bg-teal-100/70 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 border-b border-teal-200 dark:border-teal-800">R305 (VSEN26-KP)</th>
+                                <th class="bg-teal-100/70 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 border-b border-teal-200 dark:border-teal-800">R301(Jml ART)</th>
+                                <th class="bg-teal-100/70 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 border-b border-teal-200 dark:border-teal-800">R407(Jml ART 2-4 Thun)</th>
+                                <th class="bg-teal-100/70 dark:bg-teal-950/20 text-teal-700 dark:text-teal-300 border-b border-teal-200 dark:border-teal-800">R503(Jml ART kode 2 )</th>
                             @endif
 
                             {{-- Group 4: IPDS s/d SERUTI (soft purple) --}}
