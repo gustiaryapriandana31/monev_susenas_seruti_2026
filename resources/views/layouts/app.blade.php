@@ -7,8 +7,7 @@
     <title>Monev Susenas Seruti 2026 - Dashboard</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=2">
-    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v=2">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=3">
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -335,7 +334,7 @@
                         <h2 id="current-section-title" class="text-bps-dark font-bold text-xl">@php
                             echo ['dashboard'=>'Dashboard Utama','lapangan'=>'Petugas Lapangan','entry'=>'Petugas Entry Data','dssls'=>'Data DSSLS','dsrt'=>'Data DSRT'][$activeTab] ?? 'Dashboard Utama';
                         @endphp</h2>
-                        <p class="text-gray-500 text-xs">Monitoring Sensus Ekonomi 2026</p>
+                        <p class="text-gray-500 text-xs">Monitoring Susenas Seruti 2026</p>
                     </div>
                 </div>
                 
