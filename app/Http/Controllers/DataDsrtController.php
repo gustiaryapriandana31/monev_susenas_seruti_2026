@@ -7,13 +7,9 @@ use Illuminate\Support\Facades\Cache;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\DataDsrtImport;
 use App\Exports\DataDsrtIPDSExport;
-use App\Exports\DataDsrtSosialExport;
-use App\Exports\DataDsrtSosialKabExport;
-use App\Exports\DataDsrtLapanganExport;
-use App\Exports\DataDsrtPemeriksaanExport;
 use App\Models\DataDsrt;
-use Carbon\Carbon;
 use App\Services\DsrtTemplateExportService;
+use Carbon\Carbon;
 
 class DataDsrtController extends Controller
 {
@@ -83,40 +79,36 @@ class DataDsrtController extends Controller
         return Excel::download(new DataDsrtIPDSExport, 'Export Data DSRT untuk IPDS.xls');
     }
 
-    public function exportSosial(DsrtTemplateExportService $exporter)
+    public function exportSosial()
     {
         if (!auth()->user()->isSuperAdmin() && !auth()->user()->isAdminSosial()) {
             abort(403, 'Akses ditolak.');
         }
-
-        return $exporter->download('sosial');
+        return app(DsrtTemplateExportService::class)->download('sosial');
     }
 
-    public function exportSosialKab(DsrtTemplateExportService $exporter)
+    public function exportSosialKab()
     {
         if (!auth()->user()->isSuperAdmin() && !auth()->user()->isAdminSosial()) {
             abort(403, 'Akses ditolak.');
         }
-
-        return $exporter->download('sosial-kab');
+        return app(DsrtTemplateExportService::class)->download('sosial-kab');
     }
 
-    public function exportLapangan(DsrtTemplateExportService $exporter)
+    public function exportLapangan()
     {
         if (!auth()->user()->isSuperAdmin() && !auth()->user()->isAdminSosial()) {
             abort(403, 'Akses ditolak.');
         }
-
-        return $exporter->download('lapangan');
+        return app(DsrtTemplateExportService::class)->download('lapangan');
     }
 
-    public function exportPemeriksaan(DsrtTemplateExportService $exporter)
+    public function exportPemeriksaan()
     {
         if (!auth()->user()->isSuperAdmin() && !auth()->user()->isAdminSosial()) {
             abort(403, 'Akses ditolak.');
         }
-
-        return $exporter->download('pemeriksaan');
+        return app(DsrtTemplateExportService::class)->download('pemeriksaan');
     }
 
     public function update(Request $request)

@@ -90,7 +90,7 @@ class DataDsrtLapanganExport implements FromQuery, WithHeadings, WithMapping, Wi
     public function query()
     {
         // Return query for export sorted by status (Sudah first)
-        return DataDsrt::query()->orderBy('ceklis_lap', 'desc');
+        return DataDsrt::query()->uniqueForExport()->orderBy('ceklis_lap', 'desc');
     }
 
     public function map($data): array

@@ -3,7 +3,6 @@
 namespace App\Imports;
 
 use App\Models\DataDsrt;
-use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
@@ -14,14 +13,26 @@ use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
 class DataDsrtImport extends DefaultValueBinder implements ToModel, WithHeadingRow, WithValidation, WithCustomValueBinder
 {
-    /**
-     * Cache record yang sudah ditemukan/dibuat selama 1 proses import.
-     * Tujuannya agar baris duplikat di file yang sama tidak membuat record baru.
-     */
-    protected array $processed = [];
+    protected array $occurrences = [];
 
-    public function bindValue(Cell $cell, $value): bool
+    public function bindValue(Cell $cell, $value)
     {
+        /*
+         * NBS/NKS harus mengikuti tampilan/nilai asli di Excel.
+         * Contoh: sel Excel yang berisi 00223 dibaca sebagai "00223",
+         * bukan 223. getFormattedValue() juga menghormati format angka
+         * seperti 00000 bila file Excel menyimpannya sebagai angka.
+         */
+        $column = strtoupper($cell->getColumn());
+        $worksheet = $cell->getWorksheet();
+        $heading = strtolower(trim((string) $worksheet->getCell($column . '1')->getValue()));
+
+        if (in_array($heading, ['kdbs', 'nks_sak22'], true)) {
+            $formatted = $cell->getFormattedValue();
+            $cell->setValueExplicit((string) $formatted, DataType::TYPE_STRING);
+            return true;
+        }
+
         if (is_numeric($value)) {
             $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
             return true;
@@ -33,166 +44,115 @@ class DataDsrtImport extends DefaultValueBinder implements ToModel, WithHeadingR
     public function model(array $row)
     {
         $row = array_map(function ($value) {
-            if (is_string($value)) {
-                $value = trim($value);
-            }
-
             return $value === '' ? null : $value;
         }, $row);
 
-        // Hanya import DSRT dengan dsrt_ssn = 1.
-        $dsrtSsn = $this->intValue($row, 'dsrt_ssn', 0);
-        if ($dsrtSsn !== 1) {
+        // Hanya import baris DSRT yang dsrt_ssn-nya bernilai 1.
+        // Baris dengan dsrt_ssn = 0 (atau nilai selain 1) dilewati.
+        $dsrtSsn = $this->value($row, 'dsrt_ssn', null, 0);
+        if ((string) $dsrtSsn !== '1') {
             return null;
         }
 
         $key = $this->logicalKey($row);
+        $occurrence = $this->occurrences[$key] ?? 0;
+        $this->occurrences[$key] = $occurrence + 1;
 
-        /*
-         * Cari record berdasarkan IDENTITAS DSRT yang stabil.
-         *
-         * Field r503/r503b TIDAK dipakai sebagai kunci karena keduanya
-         * dapat diubah dari halaman Data DSRT. Kalau dipakai sebagai kunci,
-         * perubahan nilai tersebut akan dianggap record baru dan menyebabkan
-         * duplikasi saat Excel di-import ulang.
-         *
-         * nmslsm juga tidak dipakai sebagai kunci karena merupakan informasi
-         * wilayah/nama SLS yang dapat berubah tanpa mengubah identitas ruta.
-         */
-        if (isset($this->processed[$key])) {
-            $model = $this->processed[$key];
-        } else {
-            $model = DataDsrt::query()
-                ->where('kec', $this->intValue($row, 'kec'))
-                ->where('desa', $this->intValue($row, 'desa'))
-                ->where('kdbs', $this->intValue($row, 'kdbs'))
-                ->where('klas', $this->intValue($row, 'klas'))
-                ->where('idbs', $this->intValue($row, 'idbs'))
-                ->where('nks_sak22', $this->intValue($row, 'nks_sak22'))
-                ->where('F_SERUTI', $this->intValue($row, 'f_seruti', $row['F_SERUTI'] ?? null))
-                ->where('dsrt_ssn', $dsrtSsn)
-                ->where('nus_ssn', $this->intValue($row, 'nus_ssn'))
-                ->orderBy('id')
-                ->first();
+        $query = DataDsrt::query()
+            ->where('kec', $this->value($row, 'kec'))
+            ->where('desa', $this->value($row, 'desa'))
+            ->where('kdbs', $this->value($row, 'kdbs'))
+            ->where('klas', $this->value($row, 'klas'))
+            ->where('idbs', $this->value($row, 'idbs'))
+            ->where('nks_sak22', $this->codeValue($row, 'nks_sak22'))
+            ->where('F_SERUTI', $this->value($row, 'f_seruti', 'F_SERUTI'))
+            ->where('nmslsm', $this->value($row, 'nmslsm'))
+            ->where('r503', $this->value($row, 'r503'))
+            ->where('r503b', $this->value($row, 'r503b'))
+            ->where('dsrt_ssn', $this->value($row, 'dsrt_ssn', null, 0))
+            ->where('nus_ssn', $this->value($row, 'nus_ssn', null, 0))
+            ->orderBy('id');
 
-            if (!$model) {
-                $model = new DataDsrt();
-            }
+        $model = $query->get()->get($occurrence) ?? new DataDsrt();
 
-            $this->processed[$key] = $model;
-        }
-
-        $isNew = !$model->exists;
-
-        /*
-         * Field sumber dari Excel.
-         * Untuk record lama, field-field ini boleh diperbarui mengikuti Excel.
-         * Field operasional yang dikerjakan petugas/admin TIDAK disentuh.
-         */
-        $sourceData = [
-            'kec'        => $this->intValue($row, 'kec'),
-            'desa'       => $this->intValue($row, 'desa'),
-            'kdbs'       => $this->intValue($row, 'kdbs'),
-            'klas'       => $this->intValue($row, 'klas'),
-            'idbs'       => $this->intValue($row, 'idbs'),
-            'nmkec'      => $this->value($row, 'nmkec'),
-            'nmdesa'     => $this->value($row, 'nmdesa'),
-            'nks_sak22'  => $this->intValue($row, 'nks_sak22'),
-            'F_SERUTI'   => $this->intValue($row, 'f_seruti', $row['F_SERUTI'] ?? null),
-            'nmslsm'     => $this->value($row, 'nmslsm'),
-            'dsrt_ssn'   => $dsrtSsn,
-            'nus_ssn'    => $this->intValue($row, 'nus_ssn'),
-        ];
-
-        $model->fill($sourceData);
-
-        /*
-         * Untuk record BARU, data awal yang memang ada di Excel tetap diimport.
-         * Untuk record LAMA, seluruh field di bawah ini sengaja dipertahankan
-         * supaya import ulang tidak menghapus/mengubah pekerjaan yang sudah ada.
-         */
-        if ($isNew) {
-            $model->fill([
-                'r503'              => $this->value($row, 'r503'),
-                'r503b'             => $this->value($row, 'r503b'),
-                'petugas_ppl'       => $this->value($row, 'petugas_ppl'),
-                'petugas_pml'       => $this->value($row, 'petugas_pml'),
-                'ceklis_lap'       => $this->checkbox($row, 'ceklis_lap'),
-                'waktu_ceklis_lap' => $this->value($row, 'waktu_ceklis_lap'),
-                'ceklis_sosial'    => $this->checkbox($row, 'ceklis_sosial'),
-                'waktu_ceklis_sosial' => $this->value($row, 'waktu_ceklis_sosial'),
-                'ceklis_ipds'      => $this->checkbox($row, 'ceklis_ipds'),
-                'waktu_ceklis_ipds' => $this->value($row, 'waktu_ceklis_ipds'),
-                'ceklis_pemeriksaan' => $this->checkbox($row, 'ceklis_pemeriksaan'),
-                'waktu_ceklis_pemeriksaan' => $this->value($row, 'waktu_ceklis_pemeriksaan'),
-                'petugas_susenas'  => $this->value($row, 'petugas_susenas'),
-                'petugas_seruti'   => $this->value($row, 'petugas_seruti'),
-                'r203_kor'         => $this->value($row, 'r203_kor'),
-                'r203_kp'          => $this->value($row, 'r203_kp'),
-                'r301_jumlah_art'  => $this->value($row, 'r301_jumlah_art'),
-                'r304_vsen26kp'    => $this->value($row, 'r304_vsen26kp'),
-                'r305_vsen26kp'    => $this->value($row, 'r305_vsen26kp'),
-                'blok_catatan_kor' => $this->checkbox($row, 'blok_catatan_kor'),
-                'blok_catatan_kp'  => $this->checkbox($row, 'blok_catatan_kp'),
-            ]);
-        }
-
-        $model->save();
-
-        // Simpan instance terbaru supaya baris duplikat dalam file yang sama
-        // tetap menggunakan record yang sama.
-        $this->processed[$key] = $model;
+        // Hanya field sumber/import yang di-update.
+        // Progress ceklis + timestamp SENGAJA tidak disentuh agar import ulang
+        // tidak menghapus progress yang sudah dikerjakan petugas.
+        $model->fill([
+            'kec' => $this->value($row, 'kec'),
+            'desa' => $this->value($row, 'desa'),
+            'kdbs' => $this->codeValue($row, 'kdbs'),
+            'klas' => $this->value($row, 'klas'),
+            'idbs' => $this->value($row, 'idbs'),
+            'nmkec' => $this->value($row, 'nmkec'),
+            'nmdesa' => $this->value($row, 'nmdesa'),
+            'nks_sak22' => $this->codeValue($row, 'nks_sak22'),
+            'F_SERUTI' => $this->value($row, 'f_seruti', 'F_SERUTI'),
+            'nmslsm' => $this->value($row, 'nmslsm'),
+            'r503' => $this->value($row, 'r503'),
+            'r503b' => $this->value($row, 'r503b'),
+            'dsrt_ssn' => $this->value($row, 'dsrt_ssn', null, 0),
+            'nus_ssn' => $this->value($row, 'nus_ssn', null, 0),
+            'petugas_ppl' => $this->value($row, 'petugas_ppl'),
+            'petugas_pml' => $this->value($row, 'petugas_pml'),
+            'petugas_susenas' => $this->value($row, 'petugas_susenas'),
+            'petugas_seruti' => $this->value($row, 'petugas_seruti'),
+            'r203_kor' => $this->value($row, 'r203_kor'),
+            'r203_kp' => $this->value($row, 'r203_kp'),
+            'r301_jumlah_art' => $this->value($row, 'r301_jumlah_art'),
+            'r304_vsen26kp' => $this->value($row, 'r304_vsen26kp'),
+            'r305_vsen26kp' => $this->value($row, 'r305_vsen26kp'),
+            'blok_catatan_kor' => $this->checkbox($row, 'blok_catatan_kor'),
+            'blok_catatan_kp' => $this->checkbox($row, 'blok_catatan_kp'),
+        ]);
 
         return $model;
     }
 
-    /**
-     * Kunci identitas DSRT yang stabil.
-     * Tidak memasukkan field yang dapat berubah karena pekerjaan pemeriksaan.
-     */
     protected function logicalKey(array $row): string
     {
-        return implode('|', [
-            $this->intValue($row, 'kec'),
-            $this->intValue($row, 'desa'),
-            $this->intValue($row, 'kdbs'),
-            $this->intValue($row, 'klas'),
-            $this->intValue($row, 'idbs'),
-            $this->intValue($row, 'nks_sak22'),
-            $this->intValue($row, 'f_seruti', $row['F_SERUTI'] ?? null),
-            $this->intValue($row, 'dsrt_ssn', 0),
-            $this->intValue($row, 'nus_ssn'),
-        ]);
+        return sha1(json_encode([
+            $this->value($row, 'kec'),
+            $this->value($row, 'desa'),
+            $this->value($row, 'kdbs'),
+            $this->value($row, 'klas'),
+            $this->value($row, 'idbs'),
+            $this->codeValue($row, 'nks_sak22'),
+            $this->value($row, 'f_seruti', 'F_SERUTI'),
+            $this->value($row, 'nmslsm'),
+            $this->value($row, 'r503'),
+            $this->value($row, 'r503b'),
+            $this->value($row, 'dsrt_ssn', null, 0),
+            $this->value($row, 'nus_ssn', null, 0),
+        ], JSON_UNESCAPED_UNICODE));
     }
 
-    protected function value(array $row, string $key, $fallback = null)
+    /**
+     * Kode NBS/NKS disimpan PERSIS seperti yang dibaca dari Excel.
+     * Tidak melakukan padding, trimming angka, atau perubahan format.
+     * Jika Excel berisi 00223 sebagai teks, database menerima 00223.
+     */
+    protected function codeValue(array $row, string $key): ?string
     {
-        if (array_key_exists($key, $row) && $row[$key] !== null && $row[$key] !== '') {
+        if (!array_key_exists($key, $row) || $row[$key] === null) {
+            return null;
+        }
+
+        // Hanya ubah tipe menjadi string; jangan mengubah isi kodenya.
+        return (string) $row[$key];
+    }
+
+    protected function value(array $row, string $key, ?string $fallback = null, $default = null)
+    {
+        if (array_key_exists($key, $row) && $row[$key] !== null) {
             return $row[$key];
         }
 
-        if ($fallback !== null) {
-            if (is_string($fallback) && array_key_exists($fallback, $row)) {
-                return $row[$fallback];
-            }
-
-            return $fallback;
+        if ($fallback !== null && array_key_exists($fallback, $row) && $row[$fallback] !== null) {
+            return $row[$fallback];
         }
 
-        return null;
-    }
-
-    protected function intValue(array $row, string $key, $fallback = null): int
-    {
-        $value = $this->value($row, $key, $fallback);
-
-        if ($value === null || $value === '') {
-            return 0;
-        }
-
-        // Excel dapat mengirim kode sebagai "00223", 223, atau 223.0.
-        // Untuk field integer database, simpan nilai numeriknya.
-        return (int) ((float) str_replace(',', '.', trim((string) $value)));
+        return $default;
     }
 
     protected function checkbox(array $row, string $key): bool

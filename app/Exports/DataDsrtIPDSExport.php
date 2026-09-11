@@ -79,7 +79,7 @@ class DataDsrtIPDSExport implements FromQuery, WithHeadings, WithMapping, WithSt
     public function query()
     {
         // Return query for export sorted by status (Sudah first)
-        return DataDsrt::query()->orderBy('ceklis_ipds', 'desc');
+        return DataDsrt::query()->uniqueForExport()->orderBy('ceklis_ipds', 'desc');
     }
 
     public function map($data): array
@@ -87,7 +87,7 @@ class DataDsrtIPDSExport implements FromQuery, WithHeadings, WithMapping, WithSt
         return [
             '16',
             '10',
-            $data->nks_sak2 ?? '',
+            $data->nks_sak22 ?? '',
             $data->nus_ssn ?? '',
             $data->ceklis_ipds == '1' ? 'Sudah' : 'Belum',
             optional($data->waktu_ceklis_ipds)->format('d-m-Y') ?? '',

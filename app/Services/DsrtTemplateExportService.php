@@ -77,13 +77,14 @@ class DsrtTemplateExportService
     private function query(string $type)
     {
         return match ($type) {
-            'sosial' => DataDsrt::query()->orderBy('ceklis_sosial', 'desc'),
-            'sosial-kab' => DataDsrt::query()->orderBy('ceklis_sosial', 'desc'),
-            'lapangan' => DataDsrt::query()->orderBy('ceklis_lap', 'desc'),
+            'sosial' => DataDsrt::query()->uniqueForExport()->orderBy('ceklis_sosial', 'desc'),
+            'sosial-kab' => DataDsrt::query()->uniqueForExport()->orderBy('ceklis_sosial', 'desc'),
+            'lapangan' => DataDsrt::query()->uniqueForExport()->orderBy('ceklis_lap', 'desc'),
             'pemeriksaan' => DataDsrt::query()
                 // Export Pemeriksaan hanya berisi ruta yang sudah dicentang pada
                 // kolom Pemeriksaan di tabel DSRT.
                 ->where('ceklis_pemeriksaan', true)
+                ->uniqueForExport()
                 ->orderBy('updated_at', 'desc'),
         };
     }
@@ -94,7 +95,7 @@ class DsrtTemplateExportService
             'sosial' => [
                 $this->code('16'),
                 $this->code('02'),
-                $this->code($this->fiveDigit($data->nks_sak22)),
+                $this->code($data->nks_sak22),
                 $data->nus_ssn ?? '',
                 $data->ceklis_sosial ? 'sudah' : 'belum',
                 $data->waktu_ceklis_sosial?->format('d-m-Y') ?? '',
@@ -103,7 +104,7 @@ class DsrtTemplateExportService
             'sosial-kab' => [
                 $this->code('16'),
                 $this->code('02'),
-                $this->code($this->fiveDigit($data->nks_sak22)),
+                $this->code($data->nks_sak22),
                 $data->nus_ssn ?? '',
                 $data->ceklis_sosial ? 'sudah' : 'belum',
                 $data->blok_catatan_kor ? 1 : 0,
@@ -114,7 +115,7 @@ class DsrtTemplateExportService
             'lapangan' => [
                 $this->code('16'),
                 $this->code('02'),
-                $this->code($this->fiveDigit($data->nks_sak22)),
+                $this->code($data->nks_sak22),
                 $data->nus_ssn ?? '',
                 $data->ceklis_lap ? 'sudah' : 'belum',
                 $data->r203_kor?->value ?? '',
@@ -124,7 +125,7 @@ class DsrtTemplateExportService
             'pemeriksaan' => [
                 $this->code('16'),
                 $this->code('02'),
-                $this->code($this->fiveDigit($data->nks_sak22)),
+                $this->code($data->nks_sak22),
                 $data->nus_ssn ?? '',
                 $data->ceklis_pemeriksaan ? 'sudah' : 'belum',
                 $data->r301_jumlah_art ?? '',
@@ -138,16 +139,6 @@ class DsrtTemplateExportService
                 $data->r305_vsen26kp ?? '',
             ],
         };
-    }
-
-    private function fiveDigit($value): string
-    {
-        $value = trim((string) ($value ?? ''));
-        if ($value === '') {
-            return '';
-        }
-
-        return str_pad($value, 5, '0', STR_PAD_LEFT);
     }
 
     /**

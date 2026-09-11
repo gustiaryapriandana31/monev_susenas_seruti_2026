@@ -693,6 +693,33 @@
         });
     }
 
+    // Filter custom DSRT (NBS, NKS, Wilayah).
+    // NBS/NKS dibandingkan sebagai STRING supaya 00223 tetap berbeda dari 223.
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData) {
+        if (!settings.nTable || settings.nTable.id !== 'dt-dsrt') return true;
+
+        var nbs = String($('#filter-dsrt-nbs').val() || '').trim().toLowerCase();
+        var nks = String($('#filter-dsrt-nks').val() || '').trim();
+        var wilayah = String($('#filter-dsrt-wilayah').val() || '').trim().toLowerCase();
+
+        if (!nbs && !nks && !wilayah) return true;
+
+        rowData = rowData || {};
+        var rowNbs = String(rowData.kdbs ?? '').trim().toLowerCase();
+        var rowNks = String(rowData.nks_sak22 ?? '').trim();
+        var rowWilayah = (
+            String(rowData.nmkec || rowData.kec || '').trim() +
+            ' - ' +
+            String(rowData.nmdesa || rowData.desa || '').trim()
+        ).replace(/^\s*-\s*|\s*-\s*$/g, '').toLowerCase();
+
+        if (nbs && rowNbs.indexOf(nbs) === -1) return false;
+        if (nks && rowNks !== nks) return false;
+        if (wilayah && rowWilayah !== wilayah) return false;
+
+        return true;
+    });
+
     // ── DataTables Init ──────────────────────────────────────────────────────────
 
     $(document).ready(function() {
@@ -733,6 +760,52 @@
                 order: [],          // Tidak ada initial sort — index kolom berbeda per role
                 columns: columnsFor(section),
                 initComplete: function() {
+                    var api = this.api();
+
+                    // DSRT: pindahkan pencarian DataTables ke baris filter custom.
+                    if (section === 'dsrt') {
+                        $('#dt-dsrt_filter').addClass('hidden');
+
+                        // Data wilayah dibuat dari data yang benar-benar ada di tabel.
+                        var wilayah = {};
+                        api.rows().every(function() {
+                            var row = this.data() || {};
+                            var kec = String(row.nmkec || row.kec || '').trim();
+                            var desa = String(row.nmdesa || row.desa || '').trim();
+                            if (kec || desa) {
+                                var label = kec && desa ? (kec + ' - ' + desa) : (kec || desa);
+                                wilayah[label] = true;
+                            }
+                        });
+
+                        var $wilayah = $('#filter-dsrt-wilayah');
+                        $wilayah.find('option:not(:first)').remove();
+                        Object.keys(wilayah).sort(function(a,b) {
+                            return a.localeCompare(b, 'id');
+                        }).forEach(function(label) {
+                            $wilayah.append($('<option>', { value: label, text: label }));
+                        });
+
+                        var $customSearch = $('#filter-dsrt-search');
+                        $customSearch.off('.dsrtSearch').on('input.dsrtSearch', function() {
+                            api.search(this.value).draw();
+                        });
+
+                        $('#filter-dsrt-nbs, #filter-dsrt-nks, #filter-dsrt-wilayah')
+                            .off('input.dsrtFilter change.dsrtFilter')
+                            .on('input.dsrtFilter change.dsrtFilter', function() {
+                                api.draw();
+                            });
+
+                        $('#reset-filter-dsrt-code').off('click.dsrtFilter').on('click.dsrtFilter', function() {
+                            $('#filter-dsrt-nbs').val('');
+                            $('#filter-dsrt-nks').val('');
+                            $('#filter-dsrt-wilayah').val('');
+                            $customSearch.val('');
+                            api.search('').draw();
+                        });
+                    }
+
                     // Inject tombol Hapus/Reset ke toolbar length DataTables
                     var $actions = $('#dt-actions-' + section);
                     if ($actions.length) {

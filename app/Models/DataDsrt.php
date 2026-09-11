@@ -74,4 +74,19 @@ class DataDsrt extends Model
     {
         return $this->belongsTo(PetugasEntry::class, 'petugas_seruti', 'kode_petugas');
     }
+
+    /**
+     * Export DSRT tanpa duplikasi NKS + No Urut Ruta.
+     * Jika ada duplicate lama, record dengan id terbesar dipakai.
+     */
+    public function scopeUniqueForExport($query)
+    {
+        $table = $query->getModel()->getTable();
+
+        $latestIds = self::query()
+            ->selectRaw('MAX(id)')
+            ->groupBy('kec', 'desa', 'kdbs', 'klas', 'idbs', 'nks_sak22', 'F_SERUTI', 'nmslsm', 'r503', 'r503b', 'dsrt_ssn', 'nus_ssn');
+
+        return $query->whereIn($table . '.id', $latestIds);
+    }
 }
