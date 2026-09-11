@@ -688,6 +688,7 @@ class DashboardController extends Controller
             'desa' => $row->desa,
             'nmkec' => $row->nmkec,
             'nmdesa' => $row->nmdesa,
+            'kdbs' => $row->kdbs,
             'nks_sak22' => $row->nks_sak22,
             'nmslsm' => $row->nmslsm,
             'r503' => $row->r503,

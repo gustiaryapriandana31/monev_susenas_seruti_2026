@@ -82,7 +82,7 @@ class DataDsrtPemeriksaanExport implements FromQuery, WithHeadings, WithMapping,
     public function query()
     {
         // Return query for export sorted by status (Sudah first)
-        return DataDsrt::query()->orderBy('updated_at', 'desc');
+        return DataDsrt::query()->uniqueForExport()->orderBy('updated_at', 'desc');
     }
 
     public function map($data): array

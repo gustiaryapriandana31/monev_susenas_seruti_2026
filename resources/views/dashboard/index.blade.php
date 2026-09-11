@@ -594,6 +594,82 @@
             </div>
             @endif
 
+            {{-- Filter DSRT --}}
+            <div class="glass p-4 rounded-md">
+                <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] gap-3 items-end">
+
+                    {{-- Filter NBS/NKS --}}
+                    <div class="min-w-0">
+                        <label for="filter-dsrt-nks"
+                            class="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1.5">
+                            Filter NBS/NKS
+                        </label>
+
+                        <select id="filter-dsrt-nks"
+                            class="w-full min-w-0 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs
+                                focus:border-bps-orange focus:ring-bps-orange focus:outline-none">
+                            <option value="">Semua NBS/NKS</option>
+                            <option value="00223">00223 (RT 004 DUSUN 02)</option>
+                            <option value="50148">50148 (RT 002 DUSUN I)</option>
+                            <option value="50150">50150 (RT 004 DUSUN 11)</option>
+                            <option value="00259">00259 (RT 02 DUSUN I)</option>
+                            <option value="00293">00293 (RT 04 DUSUN 2)</option>
+                            <option value="00642">00642 (RT 06 DUSUN III)</option>
+                            <option value="00649">00649 (RT 03 DUSUN II)</option>
+                            <option value="50328">50328 (RT 002 DUSUN 01)</option>
+                            <option value="50343">50343 (RT 05 DUSUN II)</option>
+                            <option value="00875">00875 (RT 002 DUSUN 001)</option>
+                            <option value="50495">50495 (RT 002 LINGKUNGAN I)</option>
+                            <option value="01004">01004 (RT 06 DUSUN III)</option>
+                            <option value="50578">50578 (RT 012 LINGKUNGAN III)</option>
+                            <option value="50549">50549 (RT 005 LINGKUNGAN III)</option>
+                            <option value="01146">01146 (RT 006 DUSUN 3)</option>
+                        </select>
+                    </div>
+
+                    {{-- Filter Wilayah --}}
+                    <div class="min-w-0">
+                        <label for="filter-dsrt-wilayah"
+                            class="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1.5">
+                            Filter Wilayah
+                        </label>
+
+                        <select id="filter-dsrt-wilayah"
+                            class="w-full min-w-0 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs
+                                focus:border-bps-orange focus:ring-bps-orange focus:outline-none">
+                            <option value="">Semua Wilayah</option>
+                        </select>
+                    </div>
+
+                    {{-- Pencarian Universal --}}
+                    <div class="min-w-0">
+                        <label for="filter-dsrt-search"
+                            class="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1.5">
+                            Pencarian
+                        </label>
+
+                        <input type="search"
+                            id="filter-dsrt-search"
+                            class="w-full min-w-0 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs
+                                focus:border-bps-orange focus:ring-bps-orange focus:outline-none"
+                            placeholder="Cari KRT, NKS, wilayah, dll..."
+                            aria-controls="dt-dsrt">
+                    </div>
+
+                    {{-- Reset Filter --}}
+                    <div class="flex w-auto">
+                        <button type="button"
+                            id="reset-filter-dsrt-code"
+                            class="w-auto whitespace-nowrap rounded-xl bg-gray-100 hover:bg-gray-200
+                                text-gray-600 px-4 py-2 text-xs font-bold transition-all">
+                            <i class="fa-solid fa-rotate-left mr-1"></i>
+                            Reset Filter
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
             <div class="glass p-6 rounded-md overflow-x-auto">
                 <table id="dt-dsrt" class="display nowrap w-full" style="width:100%">
                     <thead>
