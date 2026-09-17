@@ -602,6 +602,111 @@
         });
     }
 
+    var dsrtChartTargets = [
+        { code: '00223', name: 'RT 004 DUSUN 02' },
+        { code: '50148', name: 'RT 002 DUSUN I' },
+        { code: '50150', name: 'RT 004 DUSUN 11' },
+        { code: '00259', name: 'RT 02 DUSUN I' },
+        { code: '00293', name: 'RT 04 DUSUN 2' },
+        { code: '00642', name: 'RT 06 DUSUN III' },
+        { code: '00649', name: 'RT 03 DUSUN II' },
+        { code: '50328', name: 'RT 002 DUSUN 01' },
+        { code: '50343', name: 'RT 05 DUSUN II' },
+        { code: '00875', name: 'RT 002 DUSUN 001' },
+        { code: '50495', name: 'RT 002 LINGKUNGAN I' },
+        { code: '01004', name: 'RT 06 DUSUN III' },
+        { code: '50578', name: 'RT 012 LINGKUNGAN III' },
+        { code: '50549', name: 'RT 005 LINGKUNGAN III' },
+        { code: '01146', name: 'RT 006 DUSUN 3' }
+    ];
+
+    var dsrtChartFilterLabels = {
+        semua: 'Semua',
+        lap: 'Lapangan',
+        pemeriksaan: 'Pemeriksaan',
+        sosial: 'Sosial',
+        ipds: 'IPDS'
+    };
+
+    function renderDsrtChecklistChart(res) {
+        var selectedType = $('#filter-chart-dsrt').val() || 'lap';
+        var selectedLabel = dsrtChartFilterLabels[selectedType] || 'Lapangan';
+        var rows = (res && res.dsrt && Array.isArray(res.dsrt.chart)) ? res.dsrt.chart : [];
+        var rowByCode = {};
+
+        rows.forEach(function(row) {
+            rowByCode[String(row.kode).trim()] = row;
+        });
+
+        var labels = dsrtChartTargets.map(function(target) {
+            return [target.code, target.name];
+        });
+
+        var data = dsrtChartTargets.map(function(target) {
+            var row = rowByCode[target.code] || {};
+            var lap = Number(row.lap || 0);
+            var pemeriksaan = Number(row.pemeriksaan || 0);
+            var sosial = Number(row.sosial || 0);
+            var ipds = Number(row.ipds || 0);
+
+            if (selectedType === 'lap') return lap;
+            if (selectedType === 'pemeriksaan') return pemeriksaan;
+            if (selectedType === 'sosial') return sosial;
+            if (selectedType === 'ipds') return ipds;
+            return lap + pemeriksaan + sosial + ipds;
+        });
+
+        initChart('chart-dsrt', 'bar', labels, [{
+            label: selectedLabel,
+            data: data,
+            backgroundColor: '#3b82f6',
+            borderRadius: 4,
+            maxBarThickness: 42
+        }], {
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: function(items) {
+                            if (!items.length) return '';
+                            var index = items[0].dataIndex;
+                            var target = dsrtChartTargets[index];
+                            return 'NBS/NKS: ' + target.code;
+                        },
+                        beforeBody: function(items) {
+                            if (!items.length) return [];
+                            var target = dsrtChartTargets[items[0].dataIndex];
+                            var row = rowByCode[target.code] || {};
+                            return ['Nama SLS: ' + (row.nama_sls || target.name)];
+                        },
+                        label: function(context) {
+                            return 'Jenis ceklis: ' + selectedLabel + ' | Jumlah: ' + context.parsed.y;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0, stepSize: 1 },
+                    grid: { borderDash: [2, 4], color: '#e2e8f0' },
+                    title: { display: true, text: 'Jumlah Ceklis' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        autoSkip: false,
+                        minRotation: 45,
+                        maxRotation: 45,
+                        font: { size: 9 },
+                        padding: 6
+                    }
+                }
+            }
+        });
+    }
+
     function loadDashboardSummary(kecamatan = '', desa = '') {
         var url = '{{ route("dashboard.summary") }}';
         $.getJSON(url, { kecamatan: kecamatan, desa: desa }).done(function(res) {
@@ -646,22 +751,8 @@
                 }
             );
 
-            // 1. Chart DSRT Progress breakdown (Bar)
-            initChart('chart-dsrt', 'bar',
-                ['Lapangan', 'Pemeriksaan', 'Sosial', 'IPDS'],
-                [{
-                    label: 'Selesai Ceklis',
-                    data: [res.dsrt.lap, res.dsrt.pemeriksaan, res.dsrt.sosial, res.dsrt.ipds],
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 4
-                }],
-                {
-                    scales: {
-                        y: { beginAtZero: true, grid: { borderDash: [2, 4], color: '#e2e8f0' } },
-                        x: { grid: { display: false } }
-                    }
-                }
-            );
+            // 1. Chart DSRT: jumlah ceklis per NKS, berdasarkan filter jenis ceklis.
+            renderDsrtChecklistChart(res);
 
             // 2. Render Rekap Petugas Entry Table
             var rekapHtml = '';
@@ -723,6 +814,12 @@
     // ── DataTables Init ──────────────────────────────────────────────────────────
 
     $(document).ready(function() {
+
+        $('#filter-chart-dsrt').on('change', function() {
+            if (dashboardData) {
+                renderDsrtChecklistChart(dashboardData);
+            }
+        });
 
         var processingHtml = '<div class="custom-loader flex items-center justify-center space-x-1.5">'
             + '<div class="w-2.5 h-2.5 bg-[#FF8C00] rounded-full animate-bounce" style="animation-delay:-0.3s"></div>'

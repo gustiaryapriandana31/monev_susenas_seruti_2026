@@ -89,6 +89,42 @@ class DashboardController extends Controller
         $dsrtIpds = (clone $dsrtQuery)->where('ceklis_ipds', true)->count();
         $dsrtPemeriksaan = (clone $dsrtQuery)->where('ceklis_pemeriksaan', true)->count();
 
+        // Data chart DSRT per NKS. Sumbernya tetap query DataDsrt yang sama
+        // sehingga filter kecamatan/desa dan status ceklis tetap konsisten dengan dashboard.
+        $chartDsrtCodes = [
+            '00223', '50148', '50150', '00259', '00293',
+            '00642', '00649', '50328', '50343', '00875',
+            '50495', '01004', '50578', '50549', '01146',
+        ];
+
+        $chartDsrtRows = (clone $dsrtQuery)
+            ->whereIn('nks_sak22', $chartDsrtCodes)
+            ->select([
+                'nks_sak22',
+                'nmslsm',
+                DB::raw('SUM(CASE WHEN ceklis_lap = 1 THEN 1 ELSE 0 END) as lap'),
+                DB::raw('SUM(CASE WHEN ceklis_pemeriksaan = 1 THEN 1 ELSE 0 END) as pemeriksaan'),
+                DB::raw('SUM(CASE WHEN ceklis_sosial = 1 THEN 1 ELSE 0 END) as sosial'),
+                DB::raw('SUM(CASE WHEN ceklis_ipds = 1 THEN 1 ELSE 0 END) as ipds'),
+            ])
+            ->groupBy('nks_sak22', 'nmslsm')
+            ->get();
+
+        $chartDsrt = collect($chartDsrtCodes)->map(function ($code) use ($chartDsrtRows) {
+            $row = $chartDsrtRows->first(function ($item) use ($code) {
+                return (string) $item->nks_sak22 === $code;
+            });
+
+            return [
+                'kode' => $code,
+                'nama_sls' => $row?->nmslsm,
+                'lap' => (int) ($row?->lap ?? 0),
+                'pemeriksaan' => (int) ($row?->pemeriksaan ?? 0),
+                'sosial' => (int) ($row?->sosial ?? 0),
+                'ipds' => (int) ($row?->ipds ?? 0),
+            ];
+        })->values();
+
         // Overall progress: fully completed (all checklists = 1)
         $dsslsFullyCompleted = (clone $dsslsQuery)
             ->where('ceklis_lap', true)
@@ -271,6 +307,7 @@ class DashboardController extends Controller
                 'sosial' => $dsrtSosial,
                 'ipds' => $dsrtIpds,
                 'pemeriksaan' => $dsrtPemeriksaan,
+                'chart' => $chartDsrt,
                 'progress' => $dsrtProgress,
                 'completed' => $dsrtFullyCompleted,
                 'sebaran' => [

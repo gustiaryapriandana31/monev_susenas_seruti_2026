@@ -143,14 +143,27 @@
 
             <!-- DSRT Progress Chart -->
             <div class="glass p-6 rounded-2xl shadow-sm flex flex-col">
-                <div class="flex justify-between items-center mb-6">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-6">
                     <div>
                         <h3 class="text-lg font-bold text-bps-dark">Jumlah Ceklis DSRT</h3>
                         <p class="text-gray-500 text-xs">Total Target: <span id="chart-dsrt-total" class="font-bold text-bps-dark">...</span> Keluarga/Ruta</p>
                     </div>
+                    <div class="w-full sm:w-40">
+                        <label for="filter-chart-dsrt" class="sr-only">Filter jenis ceklis DSRT</label>
+                        <select id="filter-chart-dsrt"
+                            class="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 focus:border-bps-orange focus:ring-bps-orange focus:outline-none">
+                            
+                            <option value="lap">Lapangan</option>
+                            <option value="pemeriksaan">Pemeriksaan</option>
+                            <option value="sosial">Sosial</option>
+                            <option value="ipds">IPDS</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="relative flex-1 w-full flex items-center justify-center min-h-[300px]">
-                    <canvas id="chart-dsrt"></canvas>
+                <div class="relative flex-1 w-full min-h-[340px] overflow-x-auto overflow-y-hidden">
+                    <div class="relative h-full min-w-[900px] w-full">
+                        <canvas id="chart-dsrt"></canvas>
+                    </div>
                 </div>
             </div>
         </div>

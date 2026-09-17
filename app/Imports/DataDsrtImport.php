@@ -6,40 +6,13 @@ use App\Models\DataDsrt;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
-use PhpOffice\PhpSpreadsheet\Cell\Cell;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
-use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
-class DataDsrtImport extends DefaultValueBinder implements ToModel, WithHeadingRow, WithValidation, WithCustomValueBinder
+class DataDsrtImport implements
+    ToModel,
+    WithHeadingRow,
+    WithValidation
 {
     protected array $occurrences = [];
-
-    public function bindValue(Cell $cell, $value)
-    {
-        /*
-         * NBS/NKS harus mengikuti tampilan/nilai asli di Excel.
-         * Contoh: sel Excel yang berisi 00223 dibaca sebagai "00223",
-         * bukan 223. getFormattedValue() juga menghormati format angka
-         * seperti 00000 bila file Excel menyimpannya sebagai angka.
-         */
-        $column = strtoupper($cell->getColumn());
-        $worksheet = $cell->getWorksheet();
-        $heading = strtolower(trim((string) $worksheet->getCell($column . '1')->getValue()));
-
-        if (in_array($heading, ['kdbs', 'nks_sak22'], true)) {
-            $formatted = $cell->getFormattedValue();
-            $cell->setValueExplicit((string) $formatted, DataType::TYPE_STRING);
-            return true;
-        }
-
-        if (is_numeric($value)) {
-            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
-            return true;
-        }
-
-        return parent::bindValue($cell, $value);
-    }
 
     public function model(array $row)
     {
@@ -93,17 +66,6 @@ class DataDsrtImport extends DefaultValueBinder implements ToModel, WithHeadingR
             'r503b' => $this->value($row, 'r503b'),
             'dsrt_ssn' => $this->value($row, 'dsrt_ssn', null, 0),
             'nus_ssn' => $this->value($row, 'nus_ssn', null, 0),
-            'petugas_ppl' => $this->value($row, 'petugas_ppl'),
-            'petugas_pml' => $this->value($row, 'petugas_pml'),
-            'petugas_susenas' => $this->value($row, 'petugas_susenas'),
-            'petugas_seruti' => $this->value($row, 'petugas_seruti'),
-            'r203_kor' => $this->value($row, 'r203_kor'),
-            'r203_kp' => $this->value($row, 'r203_kp'),
-            'r301_jumlah_art' => $this->value($row, 'r301_jumlah_art'),
-            'r304_vsen26kp' => $this->value($row, 'r304_vsen26kp'),
-            'r305_vsen26kp' => $this->value($row, 'r305_vsen26kp'),
-            'blok_catatan_kor' => $this->checkbox($row, 'blok_catatan_kor'),
-            'blok_catatan_kp' => $this->checkbox($row, 'blok_catatan_kp'),
         ]);
 
         return $model;
