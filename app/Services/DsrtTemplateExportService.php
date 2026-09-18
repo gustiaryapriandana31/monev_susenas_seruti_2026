@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DsrtTemplateExportService
 {
+    // Kode kabupaten untuk seluruh export DSRT. Wajib TEXT dengan apostrophe.
+    private const KODE_KAB = '10';
     private const TEMPLATES = [
         'sosial' => 'template_dokkab.xls',
         'sosial-kab' => 'template_dokkirimkab.xls',
@@ -94,7 +96,7 @@ class DsrtTemplateExportService
         return match ($type) {
             'sosial' => [
                 $this->code('16'),
-                $this->code('02'),
+                $this->code(self::KODE_KAB),
                 $this->code($data->nks_sak22),
                 $data->nus_ssn ?? '',
                 $data->ceklis_sosial ? 'sudah' : 'belum',
@@ -103,7 +105,7 @@ class DsrtTemplateExportService
 
             'sosial-kab' => [
                 $this->code('16'),
-                $this->code('02'),
+                $this->code(self::KODE_KAB),
                 $this->code($data->nks_sak22),
                 $data->nus_ssn ?? '',
                 $data->ceklis_sosial ? 'sudah' : 'belum',
@@ -114,7 +116,7 @@ class DsrtTemplateExportService
 
             'lapangan' => [
                 $this->code('16'),
-                $this->code('02'),
+                $this->code(self::KODE_KAB),
                 $this->code($data->nks_sak22),
                 $data->nus_ssn ?? '',
                 $data->ceklis_lap ? 'sudah' : 'belum',
@@ -124,7 +126,7 @@ class DsrtTemplateExportService
 
             'pemeriksaan' => [
                 $this->code('16'),
-                $this->code('02'),
+                $this->code(self::KODE_KAB),
                 $this->code($data->nks_sak22),
                 $data->nus_ssn ?? '',
                 $data->ceklis_pemeriksaan ? 'sudah' : 'belum',
