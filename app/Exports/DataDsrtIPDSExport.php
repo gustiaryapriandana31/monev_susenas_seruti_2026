@@ -90,7 +90,7 @@ class DataDsrtIPDSExport implements FromQuery, WithHeadings, WithMapping, WithSt
             "'" . str_pad((string) ($data->nks_sak22 ?? ''), 5, '0', STR_PAD_LEFT),
             $data->nus_ssn ?? '',
             $data->ceklis_ipds == '1' ? 'sudah' : 'belum',
-            optional($data->waktu_ceklis_ipds)->format('d-m-Y') ?? '',
+            optional($data->waktu_ceklis_ipds)->format('d-m-Y') ? "'" . optional($data->waktu_ceklis_ipds)->format('d-m-Y') : '',
         ];
     }
 
