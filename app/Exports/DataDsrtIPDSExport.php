@@ -78,8 +78,13 @@ class DataDsrtIPDSExport implements FromQuery, WithHeadings, WithMapping, WithSt
      */
     public function query()
     {
-        // Return query for export sorted by status (Sudah first)
-        return DataDsrt::query()->uniqueForExport()->orderBy('ceklis_ipds', 'desc');
+        // Return query for export sorted numerically by Kode NKS, then No Urut Ruta.
+        // Both columns are stored as strings in the database, so cast them to
+        // unsigned integers for numeric sorting without changing their output format.
+        return DataDsrt::query()
+            ->uniqueForExport()
+            ->orderByRaw('CAST(nks_sak22 AS UNSIGNED) ASC')
+            ->orderByRaw('CAST(nus_ssn AS UNSIGNED) ASC');
     }
 
     public function map($data): array
