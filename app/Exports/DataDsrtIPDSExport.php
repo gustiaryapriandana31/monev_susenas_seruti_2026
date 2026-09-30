@@ -10,9 +10,32 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 
-class DataDsrtIPDSExport implements FromQuery, WithHeadings, WithMapping, WithStyles, WithColumnWidths, WithTitle
+class DataDsrtIPDSExport extends DefaultValueBinder implements FromQuery, WithHeadings, WithMapping, WithStyles, WithColumnWidths, WithTitle, WithCustomValueBinder
 {
+    /**
+     * Force only the first three data columns to be real Excel text values.
+     * This prevents values such as 16/10 from being auto-converted to numbers,
+     * while quotePrefix makes Excel display the text without showing the apostrophe.
+     */
+    public function bindValue(Cell $cell, $value)
+    {
+        $column = $cell->getColumn();
+        $row = $cell->getRow();
+
+        if ($row >= 4 && in_array($column, ['A', 'B', 'C'], true)) {
+            $cell->setValueExplicit((string) $value, DataType::TYPE_STRING);
+            $cell->getStyle()->setQuotePrefix(true);
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
+    }
+
     public function title(): string
     {
         return 'IPDS';
@@ -41,6 +64,13 @@ class DataDsrtIPDSExport implements FromQuery, WithHeadings, WithMapping, WithSt
         // Alignment & wrap text for all cells
         $sheet->getStyle($range)->getAlignment()->setWrapText(true);
         $sheet->getStyle($range)->getAlignment()->setVertical('top');
+
+        // Tiga kode awal harus menjadi text dengan Excel quote prefix.
+        // Apostrophe bukan bagian dari isi cell, sehingga tidak terlihat di cell
+        // tetapi tetap diperlakukan sebagai prefix teks oleh Excel.
+        if ($highestRow >= 4) {
+            $sheet->getStyle('A4:C' . $highestRow)->setQuotePrefix(true);
+        }
 
         // Center alignment for header rows 1–3
         $sheet->getStyle('A1:F3')->getAlignment()->setHorizontal('center');
@@ -90,9 +120,9 @@ class DataDsrtIPDSExport implements FromQuery, WithHeadings, WithMapping, WithSt
     public function map($data): array
     {
         return [
-            "'16",
-            "'10",
-            "'" . str_pad((string) ($data->nks_sak22 ?? ''), 5, '0', STR_PAD_LEFT),
+            '16',
+            '10',
+            str_pad((string) ($data->nks_sak22 ?? ''), 5, '0', STR_PAD_LEFT),
             $data->nus_ssn ?? '',
             $data->ceklis_ipds == '1' ? 'sudah' : 'belum',
             optional($data->waktu_ceklis_ipds)->format('d-m-Y') ? "'" . optional($data->waktu_ceklis_ipds)->format('d-m-Y') : '',
